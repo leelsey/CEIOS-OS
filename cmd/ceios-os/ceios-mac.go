@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
 	"os"
@@ -68,23 +67,6 @@ func MacUpdate() {
 	CheckError(errOSUpdate, "Failed to update Operating System")
 
 	runLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "update OS!\n"
-	runLdBar.Stop()
-}
-
-func MacReboot(adminCode string) {
-	runLdBar.Suffix = " Restarting OS, please wait a moment ... "
-	runLdBar.Start()
-
-	NeedPermission(adminCode)
-	reboot := exec.Command(cmdAdmin, "shutdown", "-r", "now")
-	time.Sleep(time.Second * 3)
-	if err := reboot.Run(); err != nil {
-		runLdBar.FinalMSG = clrRed + "Error: " + clrReset
-		runLdBar.Stop()
-		fmt.Println(errors.New("failed to reboot Operating System"))
-	}
-
-	runLdBar.FinalMSG = "⣾ Restarting OS, please wait a moment ... "
 	runLdBar.Stop()
 }
 
@@ -282,7 +264,7 @@ func macBegin(adminCode string) {
 }
 
 func macEnv() {
-	macLdBar.Suffix = " Setting basic environment... "
+	macLdBar.Suffix = " Setting system environment... "
 	macLdBar.Start()
 
 	if CheckExists(prfPath) == true {
@@ -319,196 +301,144 @@ func macEnv() {
 	macLdBar.Stop()
 }
 
-func macDependency() {
+func macDependency(adminCode string) {
 	macLdBar.Suffix = " Installing dependencies... "
 	macLdBar.Start()
 
 	MacPMSInstall("pkg-config")
-	MacPMSInstall("ca-certificates")
-	MacPMSInstall("ncurses")
-	MacPMSInstall("openssl@3")
-	MacPMSInstall("openssl@1.1")
 	MacPMSInstall("readline")
 	MacPMSInstall("autoconf")
 	MacPMSInstall("automake")
-	MacPMSInstall("mpdecimal")
-	MacPMSInstall("utf8proc")
-	MacPMSInstall("m4")
+	MacPMSInstall("ncurses")
+	MacPMSInstall("ca-certificates")
+	MacPMSInstall("openssl@3")
+	MacPMSInstall("openssl@1.1")
+	MacPMSInstall("krb5")
 	MacPMSInstall("gmp")
-	MacPMSInstall("mpfr")
-	MacPMSInstall("gettext")
-	MacPMSInstall("jpeg-turbo")
-	MacPMSInstall("libtool")
-	MacPMSInstall("libevent")
-	MacPMSInstall("libffi")
-	MacPMSInstall("libtiff")
-	MacPMSInstall("libvmaf")
-	MacPMSInstall("libpng")
-	MacPMSInstall("libyaml")
-	MacPMSInstall("giflib")
-	MacPMSInstall("xz")
-	MacPMSInstall("gdbm")
-	MacPMSInstall("sqlite")
-	MacPMSInstall("lz4")
-	MacPMSInstall("zstd")
-	MacPMSInstall("hiredis")
-	MacPMSInstall("berkeley-db")
-	MacPMSInstall("asciidoctor")
-	MacPMSInstall("freetype")
-	MacPMSInstall("fontconfig")
+	MacPMSInstall("coreutils")
+	MacPMSInstall("gnupg")
+	MacPMSInstall("gnu-getopt")
 
+	MacPMSInstall("xz")        // asdf python
+	MacPMSInstall("wxwidgets") // asdf erlang
+	MacPMSInstall("swig")
+	MacPMSInstall("bison")
+	MacPMSInstall("icu4c")
+	MacPMSInstall("bzip2")
+	MacPMSInstall("re2c")
+	MacPMSInstall("fop")         // asdf erlang
+	MacPMSInstall("imagemagick") // asdf php
+	MacPMSInstall("glib")
+	MacPMSInstall("zlib")
+	MacPMSInstall("libgpg-error")
+	MacPMSInstall("libgcrypt")
+	MacPMSInstall("libsodium")
+	MacPMSInstall("libiconv")
+	MacPMSInstall("libyaml") // asdf ruby
+	MacPMSInstall("libxslt") // asdf erlang
+
+	MacPMSInstall("sqlite")
+	MacPMSInstall("sqlite-analyzer")
 	MacPMSInstall("pcre")
 	MacPMSInstall("pcre2")
 	MacPMSInstall("ccache")
 	MacPMSInstall("gawk")
-	MacPMSInstall("tcl-tk")
-	MacPMSInstall("perl")
+	MacPMSInstall("tcl-tk") // asdf python
 	MacPMSInstall("ruby")
 	MacPMSInstall("python@3.10")
+	//MacPMSInstall("llvm")
+	//MacPMSInstall("gcc")
 	MacPMSInstall("openjdk")
-
+	//MacJavaHome("", "", adminCode)
+	//MacPMSInstall("openjdk@17")
+	//MacJavaHome("@17", "-17", adminCode)
+	//MacPMSInstall("openjdk@11")
+	//MacJavaHome("@11", "-11", adminCode)
+	//if CheckArchitecture() == "amd64" {
+	//	MacPMSInstall("openjdk@8")
+	//	MacJavaHome("@8", "-8", adminCode)
+	//}
+	//MacPMSInstall("php")
 	MacPMSInstall("ghc")
-	MacPMSInstall("krb5")
-	MacPMSInstall("libsodium")
-	MacPMSInstall("nettle")
-	MacPMSInstall("coreutils")
-	MacPMSInstall("gnu-getopt")
-	MacPMSInstall("ldns")
-	MacPMSInstall("isl")
-	MacPMSInstall("npth")
-	MacPMSInstall("gzip")
-	MacPMSInstall("bzip2")
-	MacPMSInstall("fop")
-	MacPMSInstall("little-cms2")
-	MacPMSInstall("imath")
-	MacPMSInstall("openldap")
-	MacPMSInstall("openexr")
-	MacPMSInstall("openjpeg")
-	MacPMSInstall("jpeg-xl")
-	MacPMSInstall("webp")
-	MacPMSInstall("rtmpdump")
-	MacPMSInstall("aom")
-	MacPMSInstall("screenresolution")
-	MacPMSInstall("brotli")
-	MacPMSInstall("bison")
-	MacPMSInstall("swig")
-	MacPMSInstall("re2c")
-	MacPMSInstall("icu4c")
-	MacPMSInstall("bdw-gc")
-	MacPMSInstall("guile")
-	MacPMSInstall("wxwidgets")
-	MacPMSInstall("sphinx-doc")
-	MacPMSInstall("docbook")
-	MacPMSInstall("docbook2x")
-	MacPMSInstall("docbook-xsl")
-	MacPMSInstall("xmlto")
-	MacPMSInstall("html-xml-utils")
-	MacPMSInstall("shared-mime-info")
-	MacPMSInstall("x265")
-	MacPMSInstall("oniguruma")
-	MacPMSInstall("libgpg-error")
-	MacPMSInstall("libgcrypt")
-	MacPMSInstall("libunistring")
-	MacPMSInstall("libatomic_ops")
-	MacPMSInstall("libiconv")
-	MacPMSInstall("libmpc")
-	MacPMSInstall("libidn")
-	MacPMSInstall("libidn2")
-	MacPMSInstall("libssh2")
-	MacPMSInstall("libnghttp2")
-	MacPMSInstall("libxml2")
-	MacPMSInstall("libtasn1")
-	MacPMSInstall("libxslt")
-	MacPMSInstall("libavif")
-	MacPMSInstall("libzip")
-	MacPMSInstall("libde265")
-	MacPMSInstall("libheif")
-	MacPMSInstall("libksba")
-	MacPMSInstall("libusb")
-	MacPMSInstall("liblqr")
-	MacPMSInstall("libomp")
-	MacPMSInstall("libassuan")
-	MacPMSInstall("p11-kit")
-	MacPMSInstall("gnutls")
-	MacPMSInstall("gd")
-	MacPMSInstall("ghostscript")
-	MacPMSInstall("imagemagick")
-	MacPMSInstall("pinentry")
-	MacPMSInstall("gnupg")
-	MacPMSInstall("curl")
-	MacPMSInstall("wget")
-	MacPMSInstall("glib")
-	MacPMSInstall("zlib")
+	MacPMSInstall("cabal-install")
+	MacPMSInstall("haskell-language-server")
+	MacPMSInstall("stylish-haskell")
 
-	shrcAppend := "# NCURSES\n" +
-		"export PATH=\"" + brewPrefix + "opt/ncurses/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/ncurses/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/ncurses/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/ncurses/lib/pkgconfig\"\n\n" +
-		"# OPENSSL-3\n" +
-		"export PATH=\"" + brewPrefix + "opt/openssl@3/bin:$PATH\"\n" +
-		"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@3/lib\"\n" +
-		"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@3/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@3/lib/pkgconfig\"\n\n" +
-		"# OPENSSL-1.1\n" +
-		"export PATH=\"" + brewPrefix + "opt/openssl@1.1/bin:$PATH\"\n" +
-		"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@1.1/lib\"\n" +
-		"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@1.1/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@1.1/lib/pkgconfig\"\n\n" +
-		"# KRB5\n" +
-		"export PATH=\"" + brewPrefix + "opt/krb5/bin:$PATH\"\n" +
-		"export PATH=\"" + brewPrefix + "opt/krb5/sbin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/krb5/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/krb5/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/krb5/lib/pkgconfig\"\n\n" +
-		"# COREUTILS\n" +
-		"#export PATH=\"" + brewPrefix + "opt/coreutils/libexec/gnubin:$PATH\"\n\n" +
-		"# GNU GETOPT\n" +
-		"export PATH=\"" + brewPrefix + "opt/gnu-getopt/bin:$PATH\"\n\n" +
-		"# TCL-TK\n" +
-		"export PATH=\"" + brewPrefix + "opt/tcl-tk/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/tcl-tk/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/tcl-tk/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/tcl-tk/lib/pkgconfig\"\n\n" +
-		"# BZIP2\n" +
-		"export PATH=\"" + brewPrefix + "opt/bzip2/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/bzip2/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/bzip2/include\"\n\n" +
-		"# BISON\n" +
-		"export PATH=\"" + brewPrefix + "opt/bison/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/bison/lib\"\n\n" +
-		"# ICU4C\n" +
-		"export PATH=\"" + brewPrefix + "opt/icu4c/bin:$PATH\"\n" +
-		"export PATH=\"" + brewPrefix + "opt/icu4c/sbin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/icu4c/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/icu4c/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/icu4c/lib/pkgconfig\"\n\n" +
-		"# DOCBOOK\n" +
-		"export XML_CATALOG_FILES=\"" + brewPrefix + "etc/xml/catalog\"\n\n" +
-		"# LIBICONV\n" +
-		"export PATH=\"" + brewPrefix + "opt/libiconv/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/libiconv/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/libiconv/include\"\n\n" +
-		"# LIBXML2\n" +
-		"export PATH=\"" + brewPrefix + "opt/libxml2/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/libxml2/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/libxml2/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/libxml2/lib/pkgconfig\"\n\n" +
-		"# LIBXSLT\n" +
-		"export PATH=\"" + brewPrefix + "opt/libxslt/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/libxslt/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/libxslt/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/libxslt/lib/pkgconfig\"\n\n" +
-		"# CURL\n" +
-		"export PATH=\"" + brewPrefix + "opt/curl/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/curl/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/curl/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/curl/lib/pkgconfig\"\n\n" +
-		"# ZLIB\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/zlib/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/zlib/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/zlib/lib/pkgconfig\"\n\n"
-	AppendFile(shrcPath, shrcAppend, 0644)
+	MacPMSInstall("httpd")
+	MacPMSInstall("tomcat")
+	MacPMSInstall("mysql")
+	MacPMSInstall("redis")
+
+	//shrcAppend := "# NCURSES\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/ncurses/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/ncurses/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/ncurses/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/ncurses/lib/pkgconfig\"\n\n" +
+	//	"# OPENSSL-3\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/openssl@3/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@3/lib\"\n" +
+	//	"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@3/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@3/lib/pkgconfig\"\n\n" +
+	//	"# OPENSSL-1.1\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/openssl@1.1/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@1.1/lib\"\n" +
+	//	"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@1.1/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@1.1/lib/pkgconfig\"\n\n" +
+	//	"# KRB5\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/krb5/bin:$PATH\"\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/krb5/sbin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/krb5/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/krb5/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/krb5/lib/pkgconfig\"\n\n" +
+	//	"# COREUTILS\n" +
+	//	"#export PATH=\"" + brewPrefix + "opt/coreutils/libexec/gnubin:$PATH\"\n\n" +
+	//	"# GNU GETOPT\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/gnu-getopt/bin:$PATH\"\n\n" +
+	//	"# BISON\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/bison/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/bison/lib\"\n\n" +
+	//	"# ICU4C\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/icu4c/bin:$PATH\"\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/icu4c/sbin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/icu4c/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/icu4c/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/icu4c/lib/pkgconfig\"\n\n" +
+	//	"# LIBICONV\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/libiconv/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/libiconv/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/libiconv/include\"\n\n" +
+	//	"# LIBXSLT\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/libxslt/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/libxslt/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/libxslt/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/libxslt/lib/pkgconfig\"\n\n" +
+	//	"# CURL\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/curl/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/curl/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/curl/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/curl/lib/pkgconfig\"\n\n" +
+	//	"# SQLITE3\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/sqlite/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/sqlite/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/sqlite/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/sqlite/lib/pkgconfig\"\n\n" +
+	//	"# CCACHE\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/ccache/libexec:$PATH\"\n\n" +
+	//	"# TCL-TK\n" +
+	//	"export PATH=\"" + brewPrefix + "opt/tcl-tk/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/tcl-tk/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/tcl-tk/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/tcl-tk/lib/pkgconfig\"\n\n" +
+	//	"# RUBY\n" +
+	//	"export PATH=\"/usr/local/opt/ruby/bin:$PATH\"\n" +
+	//	"export LDFLAGS=\"/usr/local/opt/ruby/lib\"\n" +
+	//	"export CPPFLAGS=\"/usr/local/opt/ruby/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"/usr/local/opt/ruby/lib/pkgconfig\"\n\n" +
+	//	"# ZLIB\n" +
+	//	"export LDFLAGS=\"" + brewPrefix + "opt/zlib/lib\"\n" +
+	//	"export CPPFLAGS=\"" + brewPrefix + "opt/zlib/include\"\n" +
+	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/zlib/lib/pkgconfig\"\n\n"
+	//AppendFile(shrcPath, shrcAppend, 0644)
 
 	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install dependencies!\n"
 	macLdBar.Stop()
@@ -593,72 +523,8 @@ func macTerminal() {
 	macLdBar.Stop()
 }
 
-func macLanguage(adminCode string) {
-	macLdBar.Suffix = " Installing computer programming language... "
-	macLdBar.Start()
-
-	MacPMSInstall("llvm")
-	MacPMSInstall("gcc") // fortran
-	MacJavaHome("", "", adminCode)
-	MacPMSInstall("openjdk@17")
-	MacJavaHome("@17", "-17", adminCode)
-	MacPMSInstall("openjdk@11")
-	MacJavaHome("@11", "-11", adminCode)
-	if CheckArchitecture() == "amd64" {
-		MacPMSInstall("openjdk@8")
-		MacJavaHome("@8", "-8", adminCode)
-	}
-	//MacPMSInstall("rust")
-	//MacPMSInstall("go")
-	//MacPMSInstall("lua")
-	//MacPMSInstall("php")
-	//MacPMSInstall("node")
-	//MacPMSInstall("typescript")
-	//MacPMSRepository("dart-lang/dart")
-	//MacPMSInstall("dart")
-	//MacPMSInstall("groovy")
-	//MacPMSInstall("kotlin")
-	//MacPMSInstall("scala")
-	//MacPMSInstall("clojure")
-	//MacPMSInstall("erlang")
-	//MacPMSInstall("elixir")
-	MacPMSInstall("cabal-install")
-	MacPMSInstall("haskell-language-server")
-	MacPMSInstall("stylish-haskell")
-
-	shrcAppend := "# CCACHE\n" +
-		"export PATH=\"" + brewPrefix + "opt/ccache/libexec:$PATH\"\n\n" +
-		"# RUBY\n" +
-		"export PATH=\"" + brewPrefix + "opt/ruby/bin:$PATH\"\n"
-	AppendFile(shrcPath, shrcAppend, 0644)
-
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install languages!\n"
-	macLdBar.Stop()
-}
-
-func macServer() {
-	macLdBar.Suffix = " Installing developing tools for server and database... "
-	macLdBar.Start()
-
-	MacPMSInstall("httpd")
-	MacPMSInstall("tomcat")
-	MacPMSInstall("sqlite-analyzer")
-	MacPMSInstall("mysql")
-	MacPMSInstall("redis")
-
-	shrcAppend := "# SQLITE3\n" +
-		"export PATH=\"" + brewPrefix + "opt/sqlite/bin:$PATH\"\n" +
-		"export LDFLAGS=\"" + brewPrefix + "opt/sqlite/lib\"\n" +
-		"export CPPFLAGS=\"" + brewPrefix + "opt/sqlite/include\"\n" +
-		"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/sqlite/lib/pkgconfig\"\n\n"
-	AppendFile(shrcPath, shrcAppend, 0644)
-
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install servers and databases!\n"
-	macLdBar.Stop()
-}
-
 func macDevVM() {
-	macLdBar.Suffix = " Installing developer tools version management tool with plugin... "
+	macLdBar.Suffix = " Installing developer tools version management tool... "
 	macLdBar.Start()
 
 	MacPMSInstall("asdf")
@@ -716,6 +582,8 @@ func macCLIApp() {
 	MacPMSInstall("zsh")
 	MacPMSInstall("openssh")
 	MacPMSInstall("mosh")
+	MacPMSInstall("wget")
+	MacPMSInstall("curl")
 	MacPMSInstall("git")
 	MacPMSInstall("inetutils")
 	MacPMSInstall("openvpn")
@@ -879,40 +747,19 @@ func macEnd() {
 }
 
 func CEIOSmacOS(adminCode string) {
-	var brewSts string
-
-	if CheckExists(macPMS) == true {
-		brewSts = "Update"
-	} else {
-		brewSts = "Install"
-	}
-
-	fmt.Println(clrCyan + "CEIOS The Development tools of Essential and Various for macOS\n" + clrReset)
-
-	runEgMsg := lstDot + "Run " + clrPurple + "" + clrReset + " installation\n" + lstDot + brewSts + " homebrew with configure shell"
-	fmt.Println(runEgMsg + ", then install Dependencies, Languages, Server, Database, management DevTools and Terminal/CLI/GUI applications with set basic preferences.")
-
-	alMsg := lstDot + "Use root permission to install "
-	if brewSts == "Install" {
-		alMsg = alMsg + "homebrew " + clrReset + "and " + clrPurple + "applications" + clrReset + ": "
-	} else if brewSts == "Update" {
-		alMsg = alMsg + "applications" + clrReset + ": "
-	}
-	fmt.Println(alMsg + "Java, Loopback, VMware Fusion, Wireshark and Zenmap")
+	fmt.Println(clrCyan + "CEIOS OS Installation" + clrReset)
 
 	macBegin(adminCode)
 	macEnv()
-	macDependency()
+	macDependency(adminCode)
 	macTerminal()
-	macLanguage(adminCode)
-	macServer()
 	macDevVM()
 	macCLIApp()
 	macGUIApp(adminCode)
 	macEnd()
 
+	fmt.Print(clrCyan + "Configure Git Global Easily\n" + clrReset + "To continue we setup git global configuration.\nIf you wish to continue type (Y) then press return: ")
 	var g4sOpt string
-	fmt.Print(clrCyan + "\nConfigure git global easily\n" + clrReset + "To continue we setup git global configuration.\nIf you wish to continue type (Y) then press return: ")
 	_, errG4sOpt := fmt.Scanln(&g4sOpt)
 	if errG4sOpt != nil {
 		g4sOpt = "Enter"
@@ -921,10 +768,16 @@ func CEIOSmacOS(adminCode string) {
 		ClearLine(3)
 		ConfigGit4sh()
 	} else {
-		ClearLine(4)
+		ClearLine(3)
 	}
 
-	fmt.Print(clrCyan + "\nFinishing CEIOS-OS installation\n" + clrReset)
+	fmt.Println(" ------------------------------------------------------------\n" +
+		clrCyan + "Finished CEIOS OS Installation" + clrReset +
+		"\n Please" + clrRed + " RESTART " + clrReset + "your terminal and macOS!\n" +
+		lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
+		lstDot + "Or restart the Terminal application by yourself.\n" +
+		lstDot + "Also you need " + clrRed + "RESTART macOS " + clrReset + " to apply " + "the changes.\n" +
+		clrCyan + "System Update and Restart OS" + clrReset)
+	fmt.Println()
 	MacUpdate()
-	MacReboot(adminCode)
 }

@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	appVer   = "0.5"
+	appVer   = "0.1"
 	lstDot   = " • "
 	shrcPath = HomeDir() + ".zshrc"
 	prfPath  = HomeDir() + ".zprofile"
@@ -43,7 +43,7 @@ var (
 
 func MessageError(handling, msg, code string) {
 	errOccurred := clrRed + "\nError occurred " + clrReset + "at "
-	errMsgFormat := "\n" + clrRed + "Error >> " + clrReset + msg + " (" + code + ")\n"
+	errMsgFormat := "\n" + clrRed + "Error >> " + clrReset + msg + " (" + code + ")"
 	if handling == "fatal" || handling == "stop" {
 		fmt.Print(errors.New("\n" + lstDot + "Fatal error" + errOccurred))
 		log.Fatalln(errMsgFormat)
@@ -141,9 +141,9 @@ func CheckPassword() (string, bool) {
 		} else {
 			runLdBar.Stop()
 			if tryLoop == 1 {
-				ClearLine(tryLoop)
+				ClearLine(tryLoop - 1)
 			} else {
-				ClearLine(tryLoop * 2)
+				ClearLine(tryLoop*2 - 1)
 			}
 			return strPw, true
 		}
@@ -173,6 +173,23 @@ func NeedPermission(strPw string) {
 			lstDot + "Working username: " + string(whoAmI)
 		MessageError("fatal", msg, "User")
 	}
+}
+
+func RebootOS(adminCode string) {
+	runLdBar.Suffix = " Restarting OS, please wait a moment ... "
+	runLdBar.Start()
+
+	NeedPermission(adminCode)
+	reboot := exec.Command(cmdAdmin, "shutdown", "-r", "now")
+	time.Sleep(time.Second * 3)
+	if err := reboot.Run(); err != nil {
+		runLdBar.FinalMSG = clrRed + "Error: " + clrReset
+		runLdBar.Stop()
+		fmt.Println(errors.New("failed to reboot Operating System"))
+	}
+
+	runLdBar.FinalMSG = "⣾ Restarting OS, please wait a moment ... "
+	runLdBar.Stop()
 }
 
 func ClearLine(line int) {
@@ -386,7 +403,7 @@ func ConfigAlias4sh() {
 }
 
 func ConfigGit4sh() {
-	fmt.Println(clrCyan + "Git global configuration" + clrReset)
+	fmt.Println(clrCyan + "Git Global Configuration" + clrReset)
 
 	fmt.Println(lstDot + "Add user information")
 	consoleReader := bufio.NewScanner(os.Stdin)
@@ -432,7 +449,16 @@ func ConfigGit4sh() {
 }
 
 func main() {
-	fmt.Println(clrBlue + "\nDev4mac\n" + clrGrey + "Dev4os version " + appVer + "\n" + clrReset)
+	fmt.Println(clrBlue + "\n\t   ____________________  _____    ____  _____\n" +
+		"\t  / ____/ ____/  _/ __ \\/ ___/   / __ \\/ ___/\n" +
+		"\t / /   / __/  / // / / /\\__ \\   / / / /\\__ \\ \n" +
+		"\t/ /___/ /____/ // /_/ /___/ /  / /_/ /___/ / \n" +
+		"\t\\____/_____/___/\\____//____/   \\____//____/\n" + clrReset +
+		"\t   C E I O S  O S  -  B Y  L E E L S E Y\n" +
+		"     C Y B E R S E C U R I T Y  O P E R A T I O N S  O S\n" +
+		clrGrey + "\t\t\t Version " + appVer + "\n" +
+		"\t\t    contact@leelsey.com\n" + clrReset +
+		" ------------------------------------------------------------")
 
 	runLdBar.Suffix = " Checking network status... "
 	runLdBar.Start()
@@ -455,13 +481,10 @@ func main() {
 		} else {
 			goto exitPoint
 		}
+		RebootOS(adminCode)
 	} else {
 		goto exitPoint
 	}
-
-	fmt.Println("\n----------Finished!----------\nPlease" + clrRed + " RESTART " + clrReset + "your terminal!\n" +
-		lstDot + "Enter this on terminal: source ~/.zprofile && source ~/.zshrc\n" + lstDot + "Or restart the Terminal.app by yourself." +
-		lstDot + "Also you need " + clrRed + "RESTART macOS " + clrReset + " to apply " + "the changes.")
 
 exitPoint:
 	return

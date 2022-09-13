@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
@@ -27,8 +26,6 @@ var (
 	optReIn  = "reinstall"
 	//optUnIn  = "uninstall"
 	//optRm    = "remove"
-	//macAlt    = "--cask"
-	//macRepo   = "tap"
 	tryLoop   = 0
 	clrReset  = "\033[0m"
 	clrRed    = "\033[31m"
@@ -141,9 +138,9 @@ func CheckPassword() (string, bool) {
 		} else {
 			runLdBar.Stop()
 			if tryLoop == 1 {
-				ClearLine(tryLoop - 1)
+				ClearLine(tryLoop)
 			} else {
-				ClearLine(tryLoop*2 - 1)
+				ClearLine(tryLoop * 2)
 			}
 			return strPw, true
 		}
@@ -402,18 +399,7 @@ func ConfigAlias4sh() {
 	RemoveFile(dlA4sPath)
 }
 
-func ConfigGit4sh() {
-	fmt.Println(clrCyan + "Git Global Configuration" + clrReset)
-
-	fmt.Println(lstDot + "Add user information")
-	consoleReader := bufio.NewScanner(os.Stdin)
-	fmt.Print("  - User name: ")
-	consoleReader.Scan()
-	gitUserName := consoleReader.Text()
-	fmt.Print("  - User email: ")
-	consoleReader.Scan()
-	gitUserEmail := consoleReader.Text()
-
+func ConfigGit4sh(gitUserName, gitUserEmail string) {
 	setGitUserName := exec.Command(macGit, "config", "--global", "user.name", gitUserName)
 	errGitUserName := setGitUserName.Run()
 	CheckError(errGitUserName, "Failed to set git user name")
@@ -421,22 +407,18 @@ func ConfigGit4sh() {
 	errGitUserEmail := setGitUserEmail.Run()
 	CheckError(errGitUserEmail, "Failed to set git user email")
 	ClearLine(3)
-	fmt.Println(lstDot + "Saved user name(" + gitUserName + ") and email(" + gitUserEmail + ").")
 
 	setGitBranch := exec.Command(macGit, "config", "--global", "init.defaultBranch", "main")
 	errGitBranch := setGitBranch.Run()
 	CheckError(errGitBranch, "Failed to change branch default name (master -> main)")
-	fmt.Println(lstDot + "Main git branch default name changed master -> main.")
 
 	setGitColor := exec.Command(macGit, "config", "--global", "color.ui", "true")
 	errGitColor := setGitColor.Run()
 	CheckError(errGitColor, "Failed to setup colourising")
-	fmt.Println(lstDot + "Colourising enabled.")
 
 	setGitEditor := exec.Command(macGit, "config", "--global", "core.editor", "vi")
 	errGitEditor := setGitEditor.Run()
 	CheckError(errGitEditor, "Failed to setup editor vi (vim)")
-	fmt.Println(lstDot + "Default editor set to vi (vim).")
 
 	ignoreDirPath := HomeDir() + ".config/git/"
 	ignorePath := ignoreDirPath + "gitignore_global"
@@ -445,7 +427,6 @@ func ConfigGit4sh() {
 	setExcludesFile := exec.Command(macGit, "config", "--global", "core.excludesfile", ignorePath)
 	errExcludesFile := setExcludesFile.Run()
 	CheckError(errExcludesFile, "Failed to set git global ignore file")
-	fmt.Println(lstDot + "Ignore list set in \"" + ignoreDirPath + "gitignore_global\".")
 }
 
 func main() {
@@ -472,6 +453,7 @@ func main() {
 
 	runLdBar.Stop()
 
+	fmt.Println(clrCyan + "Need Permission" + clrReset)
 	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
 		NeedPermission(adminCode)
 		if CheckOperatingSystem() == "darwin" {

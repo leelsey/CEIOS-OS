@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/briandowns/spinner"
 	"os"
@@ -19,8 +20,6 @@ var (
 	macAlt     = "--cask"
 	macRepo    = "tap"
 	fontPath   = HomeDir() + "Library/Fonts/"
-	p10kPath   = HomeDir() + ".config/p10k/"
-	p10kCache  = HomeDir() + ".cache/p10k-" + WorkingUser()
 	macLdBar   = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
 
@@ -319,23 +318,26 @@ func macDependency(adminCode string) {
 	MacPMSInstall("gnupg")
 	MacPMSInstall("gnu-getopt")
 
-	MacPMSInstall("xz")        // asdf python
-	MacPMSInstall("wxwidgets") // asdf erlang
+	MacPMSInstall("xz")
+	MacPMSInstall("oniguruma")
+	MacPMSInstall("wxwidgets")
 	MacPMSInstall("swig")
 	MacPMSInstall("bison")
 	MacPMSInstall("icu4c")
 	MacPMSInstall("bzip2")
 	MacPMSInstall("re2c")
-	MacPMSInstall("fop")         // asdf erlang
-	MacPMSInstall("imagemagick") // asdf php
+	MacPMSInstall("fop")
+	MacPMSInstall("gd")
+	MacPMSInstall("imagemagick")
 	MacPMSInstall("glib")
 	MacPMSInstall("zlib")
 	MacPMSInstall("libgpg-error")
 	MacPMSInstall("libgcrypt")
 	MacPMSInstall("libsodium")
 	MacPMSInstall("libiconv")
-	MacPMSInstall("libyaml") // asdf ruby
-	MacPMSInstall("libxslt") // asdf erlang
+	MacPMSInstall("libyaml")
+	MacPMSInstall("libxslt")
+	MacPMSInstall("libzip")
 
 	MacPMSInstall("sqlite")
 	MacPMSInstall("sqlite-analyzer")
@@ -343,22 +345,22 @@ func macDependency(adminCode string) {
 	MacPMSInstall("pcre2")
 	MacPMSInstall("ccache")
 	MacPMSInstall("gawk")
-	MacPMSInstall("tcl-tk") // asdf python
+	MacPMSInstall("tcl-tk")
 	MacPMSInstall("ruby")
 	MacPMSInstall("python@3.10")
-	//MacPMSInstall("llvm")
-	//MacPMSInstall("gcc")
+	MacPMSInstall("llvm")
+	MacPMSInstall("gcc")
 	MacPMSInstall("openjdk")
-	//MacJavaHome("", "", adminCode)
-	//MacPMSInstall("openjdk@17")
-	//MacJavaHome("@17", "-17", adminCode)
-	//MacPMSInstall("openjdk@11")
-	//MacJavaHome("@11", "-11", adminCode)
-	//if CheckArchitecture() == "amd64" {
-	//	MacPMSInstall("openjdk@8")
-	//	MacJavaHome("@8", "-8", adminCode)
-	//}
-	//MacPMSInstall("php")
+	MacJavaHome("", "", adminCode)
+	MacPMSInstall("openjdk@17")
+	MacJavaHome("@17", "-17", adminCode)
+	MacPMSInstall("openjdk@11")
+	MacJavaHome("@11", "-11", adminCode)
+	if CheckArchitecture() == "amd64" {
+		MacPMSInstall("openjdk@8")
+		MacJavaHome("@8", "-8", adminCode)
+	}
+	MacPMSInstall("php")
 	MacPMSInstall("ghc")
 	MacPMSInstall("cabal-install")
 	MacPMSInstall("haskell-language-server")
@@ -369,105 +371,55 @@ func macDependency(adminCode string) {
 	MacPMSInstall("mysql")
 	MacPMSInstall("redis")
 
-	//shrcAppend := "# NCURSES\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/ncurses/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/ncurses/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/ncurses/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/ncurses/lib/pkgconfig\"\n\n" +
-	//	"# OPENSSL-3\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/openssl@3/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@3/lib\"\n" +
-	//	"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@3/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@3/lib/pkgconfig\"\n\n" +
-	//	"# OPENSSL-1.1\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/openssl@1.1/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"-L" + brewPrefix + "opt/openssl@1.1/lib\"\n" +
-	//	"export CPPFLAGS=\"-I" + brewPrefix + "opt/openssl@1.1/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/openssl@1.1/lib/pkgconfig\"\n\n" +
-	//	"# KRB5\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/krb5/bin:$PATH\"\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/krb5/sbin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/krb5/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/krb5/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/krb5/lib/pkgconfig\"\n\n" +
-	//	"# COREUTILS\n" +
-	//	"#export PATH=\"" + brewPrefix + "opt/coreutils/libexec/gnubin:$PATH\"\n\n" +
-	//	"# GNU GETOPT\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/gnu-getopt/bin:$PATH\"\n\n" +
-	//	"# BISON\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/bison/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/bison/lib\"\n\n" +
-	//	"# ICU4C\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/icu4c/bin:$PATH\"\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/icu4c/sbin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/icu4c/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/icu4c/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/icu4c/lib/pkgconfig\"\n\n" +
-	//	"# LIBICONV\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/libiconv/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/libiconv/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/libiconv/include\"\n\n" +
-	//	"# LIBXSLT\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/libxslt/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/libxslt/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/libxslt/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/libxslt/lib/pkgconfig\"\n\n" +
-	//	"# CURL\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/curl/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/curl/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/curl/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/curl/lib/pkgconfig\"\n\n" +
-	//	"# SQLITE3\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/sqlite/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/sqlite/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/sqlite/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/sqlite/lib/pkgconfig\"\n\n" +
-	//	"# CCACHE\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/ccache/libexec:$PATH\"\n\n" +
-	//	"# TCL-TK\n" +
-	//	"export PATH=\"" + brewPrefix + "opt/tcl-tk/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/tcl-tk/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/tcl-tk/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/tcl-tk/lib/pkgconfig\"\n\n" +
-	//	"# RUBY\n" +
-	//	"export PATH=\"/usr/local/opt/ruby/bin:$PATH\"\n" +
-	//	"export LDFLAGS=\"/usr/local/opt/ruby/lib\"\n" +
-	//	"export CPPFLAGS=\"/usr/local/opt/ruby/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"/usr/local/opt/ruby/lib/pkgconfig\"\n\n" +
-	//	"# ZLIB\n" +
-	//	"export LDFLAGS=\"" + brewPrefix + "opt/zlib/lib\"\n" +
-	//	"export CPPFLAGS=\"" + brewPrefix + "opt/zlib/include\"\n" +
-	//	"export PKG_CONFIG_PATH=\"" + brewPrefix + "opt/zlib/lib/pkgconfig\"\n\n"
-	//AppendFile(shrcPath, shrcAppend, 0644)
-
 	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install dependencies!\n"
 	macLdBar.Stop()
 }
 
-func macTerminal() {
-	macLdBar.Suffix = " Installing zsh with useful tools... "
+func macUtility(adminCode string) {
+	macLdBar.Suffix = " Installing - applications... "
 	macLdBar.Start()
 
 	ConfigAlias4sh()
+	MacPMSInstall("bash")
+	MacPMSInstall("zsh")
+	MacPMSInstall("openssh")
+	MacPMSInstall("mosh")
+	MacPMSInstall("tmux")
+	MacPMSInstall("tmuxinator")
+	MacPMSInstall("wget")
+	MacPMSInstall("curl")
+	MacPMSInstall("inetutils")
+	MacPMSInstall("unzip")
+	MacPMSInstall("sevenzip")
+	MacPMSInstall("p7zip")
+	MacPMSInstall("vim")
+	MacPMSInstall("neovim")
 	MacPMSInstall("zsh-completions")
 	MacPMSInstall("zsh-syntax-highlighting")
 	MacPMSInstall("zsh-autosuggestions")
 	MacPMSInstall("z")
 	MakeFile(HomeDir()+".z", "", 0644)
-	MacPMSInstall("tree")
 	MacPMSInstall("fzf")
-	MacPMSInstall("tmux")
-	MacPMSInstall("tmuxinator")
+	MacPMSInstall("exa")
+	MacPMSInstall("bat")
+	MacPMSInstall("tree")
+	MacPMSInstall("diffutils")
+	MacPMSInstall("diffr")
+	MacPMSInstall("tldr")
+	MacPMSInstall("htop")
+	MacPMSInstall("btop")
+	MacPMSInstall("iperf3")
 	MacPMSInstall("neofetch")
-	dliTerm2Conf := HomeDir() + "Library/Preferences/com.googlecode.iterm2.plist"
-	DownloadFile(dliTerm2Conf, "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
+	MacPMSInstall("asciinema")
+	MacPMSInstall("transmission-cli")
 
 	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSInstall("romkatv/powerlevel10k/powerlevel10k")
+	p10kPath := HomeDir() + ".config/p10k/"
+	p10kCache := HomeDir() + ".cache/p10k-" + WorkingUser()
 	MakeDirectory(p10kPath)
 	MakeDirectory(p10kCache)
 	DownloadFile(p10kPath+"p10k-term.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-minimalism.zsh", 0644)
-
 	DownloadFile(p10kPath+"p10k-iterm2.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-atelier.zsh", 0644)
 	DownloadFile(p10kPath+"p10k-tmux.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-seeking.zsh", 0644)
 	DownloadFile(p10kPath+"p10k-ops.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-operations.zsh", 0644)
@@ -476,6 +428,7 @@ func macTerminal() {
 	DownloadFile(fontPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
 	DownloadFile(fontPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
 	DownloadFile(fontPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
+	DownloadFile(HomeDir()+"Library/Preferences/com.googlecode.iterm2.plist", "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
 
 	profileAppend := "# ZSH\n" +
 		"export SHELL=zsh\n\n" +
@@ -519,19 +472,100 @@ func macTerminal() {
 		"#vi () { $EDITOR \"$@\" }\n\n"
 	AppendFile(prfPath, profileAppend, 0644)
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install and configure for terminal!\n"
+	MacPMSInstallCask("iina", "IINA")
+	MacPMSInstallCask("sensei", "Sensei")
+	MacPMSInstallCask("rectangle", "Rectangle")
+	MacPMSInstallCask("dropbox", "Dropbox")
+	MacPMSInstallCask("dropbox-capture", "Dropbox Capture")
+	MacPMSInstallCask("keka", "Keka")
+	MacPMSInstallCask("transmission", "Transmission")
+	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
+
+	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
-func macDevVM() {
-	macLdBar.Suffix = " Installing developer tools version management tool... "
+func macProductivity(adminCode string) {
+	macLdBar.Suffix = " Installing - applications... "
 	macLdBar.Start()
 
+	MacPMSInstallCask("google-chrome", "Google Chrome")
+	MacPMSInstallCask("firefox", "Firefox")
+	ChangeMacApplicationIcon("Firefox", "Firefox.icns", adminCode)
+	MacPMSInstallCask("tor-browser", "Tor Browser")
+	ChangeMacApplicationIcon("Tor Browser", "Tor Browser.icns", adminCode)
+	//MacPMSInstallCask("chromium", "Chromium") TODO: Will add Grimoire (LE Chromium)
+	MacPMSInstallCask("spotify", "Spotify")
+	ChangeMacApplicationIcon("Spotify", "Spotify.icns", adminCode)
+	MacPMSInstallCask("signal", "Signal")
+	MacPMSInstallCask("discord", "Discord")
+	MacPMSInstallCask("slack", "Slack")
+	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
+	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
+
+	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.Stop()
+}
+
+func macCreativity(adminCode string) {
+	macLdBar.Suffix = " Installing - applications... "
+	macLdBar.Start()
+
+	MacPMSInstall("bash")
+	MacPMSInstall("zsh")
+	MacPMSInstall("openssh")
+	MacPMSInstall("mosh")
+	MacPMSInstall("wget")
+	MacPMSInstall("curl")
+	MacPMSInstall("git")
+	MacPMSInstall("inetutils")
+	MacPMSInstall("openvpn")
+	MacPMSInstall("wireguard-go")
+	MacPMSInstall("wireguard-tools")
+	MacPMSInstall("tor")
+	MacPMSInstall("torsocks")
+
+	MacPMSInstallCask("sketch", "Sketch")
+	MacPMSInstallCask("zeplin", "Zeplin")
+	MacPMSInstallCask("blender", "Blender")
+	ChangeMacApplicationIcon("Blender", "Blender.icns", adminCode)
+	MacPMSInstallCaskSudo("loopback", "Loopback", "/Applications/Loopback.app", adminCode)
+	OpenMacApplication("Loopback")
+	MacPMSInstallCask("obs", "OBS")
+
+	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.Stop()
+}
+
+func macDevelopment(adminCode string) {
+	macLdBar.Suffix = " Installing - applications... "
+	macLdBar.Start()
+
+	MacPMSInstall("make")
+	MacPMSInstallQuiet("cmake")
+	MacPMSInstall("ninja")
+	MacPMSInstall("maven")
+	MacPMSInstall("gradle")
+	MacPMSInstall("rustup-init")
+	MacPMSInstall("opencv")
+	MacPMSInstall("git")
+	MacPMSInstall("git-lfs")
+	MacPMSInstall("gh")
+	MacPMSInstall("hub")
+	MacPMSInstall("tig")
+	MacPMSInstall("qemu")
+	MacPMSInstall("curlie")
+	MacPMSInstall("jq")
+	MacPMSInstall("yq")
+	MacPMSInstall("dasel")
+	MacPMSInstall("watchman")
+	MacPMSInstall("direnv")
 	MacPMSInstall("asdf")
 
-	shrcAppend := "# ASDF VM\n" +
-		"source " + brewPrefix + "opt/asdf/libexec/asdf.sh\n" +
-		"export RUBY_CONFIGURE_OPTS=\"--with-openssl-dir=$(brew --prefix openssl@1.1)\"\n"
+	shrcAppend := "# DIRENV\n" +
+		"eval \"$(direnv hook zsh)\"\n\n" +
+		"# ASDF VM\n" +
+		"source " + brewPrefix + "opt/asdf/libexec/asdf.sh\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
 
 	asdfrcContents := "#              _____ _____  ______  __      ____  __ \n" +
@@ -552,8 +586,8 @@ func macDevVM() {
 	ASDFInstall("perl", "latest")
 	ASDFInstall("ruby", "latest")
 	ASDFInstall("python", "latest")
-	ASDFInstall("java", "openjdk-11.0.2") // JDK LTS 11
-	ASDFInstall("java", "openjdk-17.0.2") // JDK LTS 17
+	ASDFInstall("java", "openjdk-11.0.2")
+	ASDFInstall("java", "openjdk-17.0.2")
 	ASDFInstall("rust", "latest")
 	ASDFInstall("golang", "latest")
 	ASDFInstall("lua", "latest")
@@ -569,107 +603,6 @@ func macDevVM() {
 	ASDFInstall("gleam", "latest")
 	ASDFInstall("haskell", "latest")
 	ASDFReshim()
-
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install ASDF-VM with languages!\n"
-	macLdBar.Stop()
-}
-
-func macCLIApp() {
-	macLdBar.Suffix = " Installing CLI applications... "
-	macLdBar.Start()
-
-	MacPMSInstall("bash")
-	MacPMSInstall("zsh")
-	MacPMSInstall("openssh")
-	MacPMSInstall("mosh")
-	MacPMSInstall("wget")
-	MacPMSInstall("curl")
-	MacPMSInstall("git")
-	MacPMSInstall("inetutils")
-	MacPMSInstall("openvpn")
-	MacPMSInstall("wireguard-go")
-	MacPMSInstall("wireguard-tools")
-	MacPMSInstall("tor")
-	MacPMSInstall("torsocks")
-
-	MacPMSInstall("asciinema")
-	MacPMSInstall("unzip")
-	MacPMSInstall("diffutils")
-	MacPMSInstall("transmission-cli")
-	MacPMSInstall("exa")
-	MacPMSInstall("bat")
-	MacPMSInstall("diffr")
-	MacPMSInstall("tldr")
-
-	MacPMSInstall("git-lfs")
-	MacPMSInstall("gh")
-	MacPMSInstall("hub")
-	MacPMSInstall("tig")
-	MacPMSInstall("direnv")
-	MacPMSInstall("watchman")
-
-	MacPMSInstall("make")
-	MacPMSInstallQuiet("cmake")
-	MacPMSInstall("ninja")
-	MacPMSInstall("maven")
-	MacPMSInstall("gradle")
-	MacPMSInstall("rustup-init")
-	MacPMSInstall("htop")
-	MacPMSInstall("qemu")
-	MacPMSInstall("vim")
-	MacPMSInstall("neovim")
-	MacPMSInstall("curlie")
-	MacPMSInstall("jq")
-	MacPMSInstall("yq")
-	MacPMSInstall("dasel")
-
-	MacPMSInstall("nmap")
-	MacPMSInstall("radare2")
-	MacPMSInstall("sleuthkit")
-	MacPMSInstall("autopsy")
-	MacPMSInstall("virustotal-cli")
-
-	shrcAppend := "# DIRENV\n" +
-		"eval \"$(direnv hook zsh)\"\n\n"
-	AppendFile(shrcPath, shrcAppend, 0644)
-
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
-	macLdBar.Stop()
-}
-
-func macGUIApp(adminCode string) {
-	macLdBar.Suffix = " Installing GUI applications... "
-	macLdBar.Start()
-
-	MacPMSInstallCask("sensei", "Sensei")
-	MacPMSInstallCask("keka", "Keka")
-	MacPMSInstallCask("iina", "IINA")
-	MacPMSInstallCask("transmission", "Transmission")
-	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
-	MacPMSInstallCask("rectangle", "Rectangle")
-	MacPMSInstallCask("google-chrome", "Google Chrome")
-	MacPMSInstallCask("firefox", "Firefox")
-	ChangeMacApplicationIcon("Firefox", "Firefox.icns", adminCode)
-	MacPMSInstallCask("tor-browser", "Tor Browser")
-	ChangeMacApplicationIcon("Tor Browser", "Tor Browser.icns", adminCode)
-	//MacPMSInstallCask("chromium", "Chromium") TODO: Will add Grimoire (LE Chromium)
-	MacPMSInstallCask("spotify", "Spotify")
-	ChangeMacApplicationIcon("Spotify", "Spotify.icns", adminCode)
-	MacPMSInstallCask("signal", "Signal")
-	MacPMSInstallCask("discord", "Discord")
-	MacPMSInstallCask("slack", "Slack")
-	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
-	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
-
-	MacPMSInstallCask("dropbox", "Dropbox")
-	MacPMSInstallCask("dropbox-capture", "Dropbox Capture")
-	MacPMSInstallCask("sketch", "Sketch")
-	MacPMSInstallCask("zeplin", "Zeplin")
-	MacPMSInstallCask("blender", "Blender")
-	ChangeMacApplicationIcon("Blender", "Blender.icns", adminCode)
-	MacPMSInstallCask("obs", "OBS")
-	MacPMSInstallCaskSudo("loopback", "Loopback", "/Applications/Loopback.app", adminCode)
-	OpenMacApplication("Loopback")
 
 	MacPMSInstallCask("iterm2", "iTerm")
 	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
@@ -696,38 +629,49 @@ func macGUIApp(adminCode string) {
 	MacPMSInstallCask("staruml", "StarUML")
 	ChangeMacApplicationIcon("StarUML", "StarUML.icns", adminCode)
 
+	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.Stop()
+}
+
+func macSecurity(adminCode string) {
+	macLdBar.Suffix = " Installing - applications... "
+	macLdBar.Start()
+
+	MacPMSInstall("openvpn")
+	MacPMSInstall("wireguard-go")
+	MacPMSInstall("wireguard-tools")
+	MacPMSInstall("tor")
+	MacPMSInstall("torsocks")
+	MacPMSInstall("nmap")
+	MacPMSInstall("radare2")
+	MacPMSInstall("sleuthkit")
+	MacPMSInstall("autopsy")
+	MacPMSInstall("virustotal-cli")
+
 	MacPMSInstallCaskSudo("codeql", "CodeQL", brewPrefix+"Caskroom/Codeql", adminCode)
 	MacPMSInstallCask("little-snitch", "Little Snitch")
 	ChangeMacApplicationIcon("Little Snitch", "Little Snitch.icns", adminCode)
 	MacPMSInstallCask("micro-snitch", "Micro Snitch")
 	ChangeMacApplicationIcon("Micro Snitch", "Micro Snitch.icns", adminCode)
-	MacPMSInstallCask("burp-suite", "Burp Suite Community Edition")
-	MacPMSInstallCask("burp-suite-professional", "Burp Suite Professional")
-	MacPMSInstallCask("owasp-zap", "OWASP ZAP")
-	ChangeMacApplicationIcon("OWASP ZAP", "OWASP ZAP.icns", adminCode)
-	MacPMSInstallCaskSudo("wireshark", "Wireshark", "/Applications/Wireshark.app", adminCode)
-	ChangeMacApplicationIcon("Wireshark", "Wireshark.icns", adminCode)
-	MacPMSInstallCaskSudo("zenmap", "Zenmap", "/Applications/Zenmap.app", adminCode)
-	ChangeMacApplicationIcon("Zenmap", "Zenmap.icns", adminCode)
+	MacPMSInstallCask("imazing", "iMazing")
+	ChangeMacApplicationIcon("iMazing", "iMazing.icns", adminCode)
 	MacInstallHopper(adminCode)
 	MacPMSInstallCask("cutter", "Cutter")
 	// Install Ghidra // TODO: will add
-	MacPMSInstallCask("imazing", "iMazing")
-	ChangeMacApplicationIcon("iMazing", "iMazing.icns", adminCode)
 	MacPMSInstallCask("apparency", "Apparency")
 	MacPMSInstallCask("suspicious-package", "Suspicious Package")
 	MacPMSInstallCask("fsmonitor", "FSMonitor")
 	ChangeMacApplicationIcon("FSMonitor", "FSMonitor.icns", adminCode)
+	MacPMSInstallCaskSudo("wireshark", "Wireshark", "/Applications/Wireshark.app", adminCode)
+	ChangeMacApplicationIcon("Wireshark", "Wireshark.icns", adminCode)
+	MacPMSInstallCask("burp-suite", "Burp Suite Community Edition")
+	MacPMSInstallCask("burp-suite-professional", "Burp Suite Professional")
+	MacPMSInstallCask("owasp-zap", "OWASP ZAP")
+	ChangeMacApplicationIcon("OWASP ZAP", "OWASP ZAP.icns", adminCode)
+	MacPMSInstallCaskSudo("zenmap", "Zenmap", "/Applications/Zenmap.app", adminCode)
+	ChangeMacApplicationIcon("Zenmap", "Zenmap.icns", adminCode)
 
-	shrcAppend := "# ANDROID STUDIO\n" +
-		"export ANDROID_HOME=$HOME/Library/Android/sdk\n" +
-		"export PATH=$PATH:$ANDROID_HOME/emulator\n" +
-		"export PATH=$PATH:$ANDROID_HOME/tools\n" +
-		"export PATH=$PATH:$ANDROID_HOME/tools/bin\n" +
-		"export PATH=$PATH:$ANDROID_HOME/platform-tools\n\n"
-	AppendFile(shrcPath, shrcAppend, 0644)
-
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install GUI applications!\n"
+	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -749,27 +693,26 @@ func macEnd() {
 func CEIOSmacOS(adminCode string) {
 	fmt.Println(clrCyan + "CEIOS OS Installation" + clrReset)
 
+	fmt.Println("Return your information")
+	consoleReader := bufio.NewScanner(os.Stdin)
+	fmt.Print(" - User name: ")
+	consoleReader.Scan()
+	userName := consoleReader.Text()
+	fmt.Print(" - User email: ")
+	consoleReader.Scan()
+	userEmail := consoleReader.Text()
+	ClearLine(3)
+
 	macBegin(adminCode)
 	macEnv()
 	macDependency(adminCode)
-	macTerminal()
-	macDevVM()
-	macCLIApp()
-	macGUIApp(adminCode)
+	macUtility(adminCode)
+	macProductivity(adminCode)
+	macCreativity(adminCode)
+	macDevelopment(adminCode)
+	macSecurity(adminCode)
 	macEnd()
-
-	fmt.Print(clrCyan + "Configure Git Global Easily\n" + clrReset + "To continue we setup git global configuration.\nIf you wish to continue type (Y) then press return: ")
-	var g4sOpt string
-	_, errG4sOpt := fmt.Scanln(&g4sOpt)
-	if errG4sOpt != nil {
-		g4sOpt = "Enter"
-	}
-	if g4sOpt == "y" || g4sOpt == "Y" || g4sOpt == "yes" || g4sOpt == "Yes" || g4sOpt == "YES" {
-		ClearLine(3)
-		ConfigGit4sh()
-	} else {
-		ClearLine(3)
-	}
+	ConfigGit4sh(userName, userEmail)
 
 	fmt.Println(" ------------------------------------------------------------\n" +
 		clrCyan + "Finished CEIOS OS Installation" + clrReset +
@@ -778,6 +721,5 @@ func CEIOSmacOS(adminCode string) {
 		lstDot + "Or restart the Terminal application by yourself.\n" +
 		lstDot + "Also you need " + clrRed + "RESTART macOS " + clrReset + " to apply " + "the changes.\n" +
 		clrCyan + "System Update and Restart OS" + clrReset)
-	fmt.Println()
 	MacUpdate()
 }

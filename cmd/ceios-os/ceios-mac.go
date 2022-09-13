@@ -125,13 +125,13 @@ func OpenMacApplication(appName string) {
 }
 
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
-	srcIcn := WorkingDirectory() + ".dev4mac-app-icn.icns"
+	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
 	DownloadFile(srcIcn, "https://raw.githubusercontent.com/leelsey/ConfStore/main/icns/"+icnName, 0755)
 
 	appSrc := strings.Replace(appName, " ", "\\ ", -1)
 	appPath := "/Applications/" + appSrc + ".app"
-	chicnPath := WorkingDirectory() + ".dev4mac-chicn.sh"
-	cvtIcn := WorkingDirectory() + ".dev4mac-app-icn.rsrc"
+	chicnPath := WorkingDirectory() + ".ceios-chicn.sh"
+	cvtIcn := WorkingDirectory() + ".ceios-app-icn.rsrc"
 	chIcnSrc := "sudo rm -rf \"" + appPath + "\"$'/Icon\\r'\n" +
 		"sips -i " + srcIcn + " > /dev/null\n" +
 		"DeRez -only icns " + srcIcn + " > " + cvtIcn + "\n" +
@@ -244,7 +244,7 @@ func MacJavaHome(srcVer, dstVer, adminCode string) {
 }
 
 func MacInstallBrew(adminCode string) {
-	insBrewPath := WorkingDirectory() + ".dev4mac-brew.sh"
+	insBrewPath := WorkingDirectory() + ".ceios-brew.sh"
 	DownloadFile(insBrewPath, "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", 0755)
 
 	NeedPermission(adminCode)

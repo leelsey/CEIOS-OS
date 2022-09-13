@@ -152,7 +152,7 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	RemoveFile(chicnPath)
 }
 
-func ChangeMacDesktopBackground() {
+func ChangeMacWallpaper() {
 	srcWp := WorkingDirectory() + ".ceios-wallpaper.png"
 	DownloadFile(srcWp, "https://raw.githubusercontent.com/leelsey/CEIOS/main/pictures/wallpaper/desktop.jpeg", 0755)
 
@@ -742,7 +742,7 @@ func macSecurity(adminCode string) {
 	macLdBar.Stop()
 }
 
-func macEnd() {
+func macEnd(userName, userEmail string) {
 	macLdBar.Suffix = " Finishing... "
 	macLdBar.Start()
 
@@ -752,6 +752,9 @@ func macEnd() {
 	MacPMSUpgrade()
 	MacPMSCleanup()
 	MacPMSRemoveCache()
+
+	ConfigGit4sh(userName, userEmail)
+	ChangeMacWallpaper()
 
 	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "clean up homebrew's cache!\n"
 	macLdBar.Stop()
@@ -797,8 +800,7 @@ func CEIOSmacOS(adminCode string) {
 	macCreativity(adminCode)
 	macDevelopment(adminCode)
 	macSecurity(adminCode)
-	macEnd()
-	ConfigGit4sh(userName, userEmail)
+	macEnd(userName, userEmail)
 
 	fmt.Println(" ------------------------------------------------------------\n" +
 		clrCyan + "Finished CEIOS OS Installation" + clrReset +

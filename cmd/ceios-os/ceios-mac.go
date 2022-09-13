@@ -19,7 +19,6 @@ var (
 	macASDF    = MacASDFPath()
 	macAlt     = "--cask"
 	macRepo    = "tap"
-	fontPath   = HomeDir() + "Library/Fonts/"
 	macLdBar   = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
 
@@ -57,7 +56,7 @@ func MacASDFPath() string {
 	}
 }
 
-func MacUpdate() {
+func MacOSUpdate() {
 	runLdBar.Suffix = " Updating OS, please wait a moment ... "
 	runLdBar.Start()
 
@@ -69,6 +68,56 @@ func MacUpdate() {
 	runLdBar.Stop()
 }
 
+func MacSoftware() string {
+	macSoft := exec.Command("system_profiler", "SPSoftwareDataType")
+	softInfo, err := macSoft.Output()
+	CheckError(err, "Failed to get macOS hardware information")
+	return string(softInfo)
+}
+
+func MacHardware() string {
+	macHard := exec.Command("system_profiler", "SPHardwareDataType")
+	hardInfo, err := macHard.Output()
+	CheckError(err, "Failed to get macOS hardware information")
+	return string(hardInfo)
+}
+
+func MacInformatrion() (string, string) {
+	softInfo := strings.Split(MacSoftware(), "\n")
+	hardInfo := strings.Split(MacHardware(), "\n")
+
+	osInfo := strings.Split(strings.Join(softInfo[4:5], ""), ": ")
+	kernelInfo := strings.Split(strings.Join(softInfo[5:6], ""), ": ")
+	deviceInfo := strings.Split(strings.Join(softInfo[8:9], ""), ": ")
+	userInfo := strings.Split(strings.Join(softInfo[9:10], ""), ": ")
+	modelInfo := strings.Split(strings.Join(hardInfo[5:6], ""), ": ")
+	processorInfo := strings.Split(strings.Join(hardInfo[6:7], ""), ": ")
+	clockInfo := strings.Split(strings.Join(hardInfo[7:8], ""), ": ")
+	memoryInfo := strings.Split(strings.Join(hardInfo[13:14], ""), ": ")
+
+	system := strings.Join(osInfo[1:2], "")
+	kernel := strings.Join(kernelInfo[1:2], "")
+	device := strings.Join(deviceInfo[1:2], "")
+	user := strings.Join(userInfo[1:2], "")
+	userfullname := strings.Split(user, " (")
+	fullname := strings.Join(userfullname[0:1], "")
+	modelver := strings.Split(strings.Join(modelInfo[1:2], ""), ",")
+	model := strings.Join(modelver[0:1], "")
+	processor := strings.Join(processorInfo[1:2], "")
+	clock := strings.Join(clockInfo[1:2], "")
+	memory := strings.Join(memoryInfo[1:2], "")
+
+	macInfo := lstDot + clrGreen + "User name" + clrReset + ": " + user + "\n" +
+		lstDot + clrGreen + "Device name" + clrReset + ": " + device + "\n" +
+		lstDot + clrGreen + "System" + clrReset + ": " + system + " - " + kernel + "\n" +
+		//lstDot + clrGreen + "Kernel" + clrReset + ": " + kernel + "\n" +
+		lstDot + clrGreen + "Model" + clrReset + ": " + model + "\n" +
+		lstDot + clrGreen + "Processor" + clrReset + ": " + processor + " (" + clock + ")\n" +
+		lstDot + clrGreen + "Memory" + clrReset + ": " + memory
+
+	return macInfo, fullname
+}
+
 func OpenMacApplication(appName string) {
 	runApp := exec.Command("open", "/Applications/"+appName+".app")
 	err := runApp.Run()
@@ -76,13 +125,13 @@ func OpenMacApplication(appName string) {
 }
 
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
-	srcIcn := WorkingDir() + ".dev4mac-app-icn.icns"
+	srcIcn := WorkingDirectory() + ".dev4mac-app-icn.icns"
 	DownloadFile(srcIcn, "https://raw.githubusercontent.com/leelsey/ConfStore/main/icns/"+icnName, 0755)
 
 	appSrc := strings.Replace(appName, " ", "\\ ", -1)
 	appPath := "/Applications/" + appSrc + ".app"
-	chicnPath := WorkingDir() + ".dev4mac-chicn.sh"
-	cvtIcn := WorkingDir() + ".dev4mac-app-icn.rsrc"
+	chicnPath := WorkingDirectory() + ".dev4mac-chicn.sh"
+	cvtIcn := WorkingDirectory() + ".dev4mac-app-icn.rsrc"
 	chIcnSrc := "sudo rm -rf \"" + appPath + "\"$'/Icon\\r'\n" +
 		"sips -i " + srcIcn + " > /dev/null\n" +
 		"DeRez -only icns " + srcIcn + " > " + cvtIcn + "\n" +
@@ -195,7 +244,7 @@ func MacJavaHome(srcVer, dstVer, adminCode string) {
 }
 
 func MacInstallBrew(adminCode string) {
-	insBrewPath := WorkingDir() + ".dev4mac-brew.sh"
+	insBrewPath := WorkingDirectory() + ".dev4mac-brew.sh"
 	DownloadFile(insBrewPath, "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", 0755)
 
 	NeedPermission(adminCode)
@@ -216,7 +265,7 @@ func MacInstallHopper(adminCode string) {
 	hopperRSS := strings.Split(NetHTTP("https://www.hopperapp.com/rss/html_changelog.php"), " ")
 	hopperVer := strings.Join(hopperRSS[1:2], "")
 
-	dlHopperPath := WorkingDir() + ".Hopper.dmg"
+	dlHopperPath := WorkingDirectory() + ".Hopper.dmg"
 	DownloadFile(dlHopperPath, "https://d2ap6ypl1xbe4k.cloudfront.net/Hopper-"+hopperVer+"-demo.dmg", 0755)
 
 	mountHopper := exec.Command("hdiutil", "attach", dlHopperPath)
@@ -279,7 +328,7 @@ func macEnv() {
 		"#     / / |  ___/|  _  /| |  | |  __|   | | | |    |  __|  \n" +
 		"#    / /__| |    | | \\ \\| |__| | |     _| |_| |____| |____ \n" +
 		"#   /_____|_|    |_|  \\_\\\\____/|_|    |_____|______|______|\n#\n" +
-		"#  " + WorkingUser() + "’s zsh profile\n\n" +
+		"#  " + CurrentUsername() + "’s zsh profile\n\n" +
 		"# HOMEBREW\n" +
 		"eval \"$(" + macPMS + " shellenv)\"\n\n"
 	MakeFile(prfPath, profileContents, 0644)
@@ -290,7 +339,7 @@ func macEnv() {
 		"#    / /  \\___ \\|  __  |  _  /| |\n" +
 		"#   / /__ ____) | |  | | | \\ \\| |____\n" +
 		"#  /_____|_____/|_|  |_|_|  \\_\\\\_____|\n#\n" +
-		"#  " + WorkingUser() + "’s zsh run commands\n\n"
+		"#  " + CurrentUsername() + "’s zsh run commands\n\n"
 	MakeFile(shrcPath, shrcContents, 0644)
 
 	MakeDirectory(HomeDir() + ".config")
@@ -415,42 +464,43 @@ func macUtility(adminCode string) {
 
 	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSInstall("romkatv/powerlevel10k/powerlevel10k")
-	p10kPath := HomeDir() + ".config/p10k/"
-	p10kCache := HomeDir() + ".cache/p10k-" + WorkingUser()
-	MakeDirectory(p10kPath)
-	MakeDirectory(p10kCache)
-	DownloadFile(p10kPath+"p10k-term.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-minimalism.zsh", 0644)
-	DownloadFile(p10kPath+"p10k-iterm2.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-atelier.zsh", 0644)
-	DownloadFile(p10kPath+"p10k-tmux.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-seeking.zsh", 0644)
-	DownloadFile(p10kPath+"p10k-ops.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-operations.zsh", 0644)
-	DownloadFile(p10kPath+"p10k-etc.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-engineering.zsh", 0644)
-	DownloadFile(fontPath+"MesloLGS NF Bold Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold%20Italic.ttf", 0644)
-	DownloadFile(fontPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
-	DownloadFile(fontPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
-	DownloadFile(fontPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
+	p10kConfPath := HomeDir() + ".config/p10k/"
+	p10kCachePath := HomeDir() + ".cache/p10k-" + CurrentUsername()
+	fontLibPath := HomeDir() + "Library/Fonts/"
+	MakeDirectory(p10kConfPath)
+	MakeDirectory(p10kCachePath)
+	DownloadFile(p10kConfPath+"p10k-term.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-minimalism.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-iterm2.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-atelier.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-tmux.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-seeking.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-ops.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-operations.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-etc.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-engineering.zsh", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Bold Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold%20Italic.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
 	DownloadFile(HomeDir()+"Library/Preferences/com.googlecode.iterm2.plist", "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
 
 	profileAppend := "# ZSH\n" +
 		"export SHELL=zsh\n\n" +
 		"# POWERLEVEL10K\n" +
 		"source " + brewPrefix + "opt/powerlevel10k/powerlevel10k.zsh-theme\n" +
-		"if [[ -r \"${XDG_CACHE_HOME:-" + p10kCache + "}/p10k-instant-prompt-${(%):-%n}.zsh\" ]]; then\n" +
-		"  source \"${XDG_CACHE_HOME:-" + p10kCache + "}/p10k-instant-prompt-${(%):-%n}.zsh\"\n" +
+		"if [[ -r \"${XDG_CACHE_HOME:-" + p10kCachePath + "}/p10k-instant-prompt-${(%):-%n}.zsh\" ]]; then\n" +
+		"  source \"${XDG_CACHE_HOME:-" + p10kCachePath + "}/p10k-instant-prompt-${(%):-%n}.zsh\"\n" +
 		"fi\n" +
 		"if [[ -d /Applications/iTerm.app ]]; then\n" +
 		"  if [[ $TERM_PROGRAM = \"Apple_Terminal\" ]]; then\n" +
-		"    [[ ! -f " + p10kPath + "p10k-term.zsh ]] || source " + p10kPath + "p10k-term.zsh\n" +
+		"    [[ ! -f " + p10kConfPath + "p10k-term.zsh ]] || source " + p10kConfPath + "p10k-term.zsh\n" +
 		"  elif [[ $TERM_PROGRAM = \"iTerm.app\" ]]; then\n" +
-		"    [[ ! -f " + p10kPath + "p10k-iterm2.zsh ]] || source " + p10kPath + "p10k-iterm2.zsh\n" +
+		"    [[ ! -f " + p10kConfPath + "p10k-iterm2.zsh ]] || source " + p10kConfPath + "p10k-iterm2.zsh\n" +
 		"    echo ''; neofetch --bold off\n" +
 		"  elif [[ $TERM_PROGRAM = \"tmux\" ]]; then\n" +
-		"    [[ ! -f " + p10kPath + "p10k-tmux.zsh ]] || source " + p10kPath + "p10k-tmux.zsh\n" +
+		"    [[ ! -f " + p10kConfPath + "p10k-tmux.zsh ]] || source " + p10kConfPath + "p10k-tmux.zsh\n" +
 		"    echo ''; neofetch --bold off\n" +
 		"  else\n" +
-		"    [[ ! -f " + p10kPath + "p10k-etc.zsh ]] || source " + p10kPath + "p10k-etc.zsh\n" +
+		"    [[ ! -f " + p10kConfPath + "p10k-etc.zsh ]] || source " + p10kConfPath + "p10k-etc.zsh\n" +
 		"  fi\n" +
 		"else\n" +
-		"  [[ ! -f " + p10kPath + "p10k-term.zsh ]] || source " + p10kPath + "p10k-term.zsh\n" +
+		"  [[ ! -f " + p10kConfPath + "p10k-term.zsh ]] || source " + p10kConfPath + "p10k-term.zsh\n" +
 		"fi\n\n" +
 		"# ZSH-COMPLETIONS\n" +
 		"if type brew &>/dev/null; then\n" +
@@ -574,7 +624,7 @@ func macDevelopment(adminCode string) {
 		"#     / /\\ \\  \\___ \\| |  | |  __|_____\\ \\/ / | |\\/| |\n" +
 		"#    / ____ \\ ____) | |__| | |         \\  /  | |  | |\n" +
 		"#   /_/    \\_\\_____/|_____/|_|          \\/   |_|  |_|\n#\n" +
-		"#  " + WorkingUser() + "’s ASDF-VM run commands\n\n" +
+		"#  " + CurrentUsername() + "’s ASDF-VM run commands\n\n" +
 		"legacy_version_file = yes\n" +
 		"use_release_candidates = no\n" +
 		"always_keep_download = no\n" +
@@ -691,18 +741,37 @@ func macEnd() {
 }
 
 func CEIOSmacOS(adminCode string) {
-	fmt.Println(clrCyan + "CEIOS OS Installation" + clrReset)
-
-	fmt.Println("Return your information")
+	fmt.Println(clrCyan + "Return your information" + clrReset)
 	consoleReader := bufio.NewScanner(os.Stdin)
-	fmt.Print(" - User name: ")
+	fmt.Print("User name: ")
 	consoleReader.Scan()
 	userName := consoleReader.Text()
-	fmt.Print(" - User email: ")
+	fmt.Print("User email: ")
 	consoleReader.Scan()
 	userEmail := consoleReader.Text()
 	ClearLine(3)
 
+	macInfo, fullName := MacInformatrion()
+
+	if fullName != userName {
+		var alertAnswer string
+		fmt.Print(clrRed + "Warning\n" + clrReset + "Your user name is different from the system.\n" + "If you wish to continue type (Yes) then press return: ")
+		_, errG4sOpt := fmt.Scanln(&alertAnswer)
+		if errG4sOpt != nil {
+			alertAnswer = "Enter"
+		}
+		if alertAnswer == "Yes" {
+			ClearLine(3)
+		} else {
+			os.Exit(0)
+		}
+	}
+	fmt.Println(clrCyan + "User Information\n" + clrReset +
+		lstDot + clrGreen + "User name" + clrReset + ": " + userName + "\n" +
+		lstDot + clrGreen + "User email" + clrReset + ": " + userEmail + "\n" +
+		clrCyan + "System Information\n" + clrReset + macInfo)
+
+	fmt.Println(clrCyan + "CEIOS OS Installation" + clrReset)
 	macBegin(adminCode)
 	macEnv()
 	macDependency(adminCode)
@@ -721,5 +790,5 @@ func CEIOSmacOS(adminCode string) {
 		lstDot + "Or restart the Terminal application by yourself.\n" +
 		lstDot + "Also you need " + clrRed + "RESTART macOS " + clrReset + " to apply " + "the changes.\n" +
 		clrCyan + "System Update and Restart OS" + clrReset)
-	MacUpdate()
+	MacOSUpdate()
 }

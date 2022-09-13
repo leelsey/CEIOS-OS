@@ -233,13 +233,13 @@ func HomeDir() string {
 	return homeDirPath + "/"
 }
 
-func WorkingDir() string {
+func WorkingDirectory() string {
 	workingDirPath, err := os.Getwd()
 	CheckError(err, "Failed to get working directory")
 	return workingDirPath + "/"
 }
 
-func WorkingUser() string {
+func CurrentUsername() string {
 	workingUser, err := user.Current()
 	CheckError(err, "Failed to get current user")
 	return workingUser.Username
@@ -387,7 +387,7 @@ func ConfigAlias4sh() {
 	MakeDirectory(a4sPath)
 	MakeFile(a4sPath+"/alias4.sh", "# ALIAS4SH", 0644)
 
-	dlA4sPath := WorkingDir() + ".dev4mac-alias4sh.sh"
+	dlA4sPath := WorkingDirectory() + ".dev4mac-alias4sh.sh"
 	DownloadFile(dlA4sPath, "https://raw.githubusercontent.com/leelsey/Alias4sh/main/install.sh", 0644)
 
 	installA4s := exec.Command("sh", dlA4sPath)

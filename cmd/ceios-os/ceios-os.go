@@ -18,8 +18,8 @@ import (
 var (
 	appVer   = "0.1"
 	lstDot   = " • "
-	shrcPath = HomeDir() + ".zshrc"
-	prfPath  = HomeDir() + ".zprofile"
+	shrcPath = HomeDirectory() + ".zshrc"
+	prfPath  = HomeDirectory() + ".zprofile"
 	cmdAdmin = "sudo"
 	cmdSh    = "/bin/bash"
 	optIns   = "install"
@@ -227,7 +227,7 @@ func NetHTTP(urlPath string) string {
 //	return res[key].(string)
 //}
 
-func HomeDir() string {
+func HomeDirectory() string {
 	homeDirPath, err := os.UserHomeDir()
 	CheckError(err, "Failed to get home directory")
 	return homeDirPath + "/"
@@ -364,7 +364,7 @@ func ASDFReshim() {
 }
 
 func ASDFInstall(plugin, version string) {
-	if CheckExists(HomeDir()+".asdf/plugins/"+plugin) != true {
+	if CheckExists(HomeDirectory()+".asdf/plugins/"+plugin) != true {
 		asdfPlugin := exec.Command(macASDF, "plugin", "add", plugin)
 		err := asdfPlugin.Run()
 		CheckCmdError(err, "ASDF-VM failed to add", plugin)
@@ -383,7 +383,7 @@ func ASDFInstall(plugin, version string) {
 }
 
 func ConfigAlias4sh() {
-	a4sPath := HomeDir() + ".config/alias4sh"
+	a4sPath := HomeDirectory() + ".config/alias4sh"
 	MakeDirectory(a4sPath)
 	MakeFile(a4sPath+"/alias4.sh", "# ALIAS4SH", 0644)
 
@@ -420,7 +420,7 @@ func ConfigGit4sh(gitUserName, gitUserEmail string) {
 	errGitEditor := setGitEditor.Run()
 	CheckError(errGitEditor, "Failed to setup editor vi (vim)")
 
-	ignoreDirPath := HomeDir() + ".config/git/"
+	ignoreDirPath := HomeDirectory() + ".config/git/"
 	ignorePath := ignoreDirPath + "gitignore_global"
 	MakeDirectory(ignoreDirPath)
 	DownloadFile(ignorePath, "https://raw.githubusercontent.com/leelsey/Git4set/main/gitignore-sample", 0644)
@@ -441,33 +441,35 @@ func main() {
 		"\t\t    contact@leelsey.com\n" + clrReset +
 		" ------------------------------------------------------------")
 
-	runLdBar.Suffix = " Checking network status... "
-	runLdBar.Start()
+	ChangeMacDesktopBackground()
 
-	if CheckNetStatus() != true {
-		runLdBar.FinalMSG = clrRed + "Network connect failed" + clrReset + "\n"
-		runLdBar.Stop()
-		fmt.Println(errors.New(lstDot + "Please check your internet connection.\n"))
-		goto exitPoint
-	}
-
-	runLdBar.Stop()
-
-	fmt.Println(clrCyan + "Need Permission" + clrReset)
-	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
-		NeedPermission(adminCode)
-		if CheckOperatingSystem() == "darwin" {
-			CEIOSmacOS(adminCode)
-		} else if CheckOperatingSystem() == "linux" {
-			//CEIOSkaliLinux(adminCode)
-		} else {
-			goto exitPoint
-		}
-		RebootOS(adminCode)
-	} else {
-		goto exitPoint
-	}
-
-exitPoint:
-	return
+	//	runLdBar.Suffix = " Checking network status... "
+	//	runLdBar.Start()
+	//
+	//	if CheckNetStatus() != true {
+	//		runLdBar.FinalMSG = clrRed + "Network connect failed" + clrReset + "\n"
+	//		runLdBar.Stop()
+	//		fmt.Println(errors.New(lstDot + "Please check your internet connection.\n"))
+	//		goto exitPoint
+	//	}
+	//
+	//	runLdBar.Stop()
+	//
+	//	fmt.Println(clrCyan + "Need Permission" + clrReset)
+	//	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
+	//		NeedPermission(adminCode)
+	//		if CheckOperatingSystem() == "darwin" {
+	//			CEIOSmacOS(adminCode)
+	//		} else if CheckOperatingSystem() == "linux" {
+	//			//CEIOSkaliLinux(adminCode)
+	//		} else {
+	//			goto exitPoint
+	//		}
+	//		RebootOS(adminCode)
+	//	} else {
+	//		goto exitPoint
+	//	}
+	//
+	//exitPoint:
+	//	return
 }

@@ -152,6 +152,23 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	RemoveFile(chicnPath)
 }
 
+func ChangeMacDesktopBackground() {
+	srcWp := WorkingDirectory() + ".ceios-wallpaper.png"
+	DownloadFile(srcWp, "https://raw.githubusercontent.com/leelsey/CEIOS/main/pictures/wallpaper/desktop.jpeg", 0755)
+
+	chWpPath := WorkingDirectory() + ".ceios-chwap.sh"
+	chWpSrc := "osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"" + srcWp + "\"'"
+	MakeFile(chWpPath, chWpSrc, 0644)
+
+	chWp := exec.Command(cmdSh, chWpPath)
+	if err := chWp.Run(); err != nil {
+		RemoveFile(srcWp)
+		CheckCmdError(err, "Failed change", "desktop background")
+	}
+	RemoveFile(srcWp)
+	RemoveFile(chWpPath)
+}
+
 func MacPMSUpdate() {
 	updateHomebrew := exec.Command(macPMS, "update", "--auto-update")
 	err := updateHomebrew.Run()
@@ -316,10 +333,10 @@ func macEnv() {
 	macLdBar.Start()
 
 	if CheckExists(prfPath) == true {
-		CopyFile(prfPath, HomeDir()+".zprofile.bck")
+		CopyFile(prfPath, HomeDirectory()+".zprofile.bck")
 	}
 	if CheckExists(shrcPath) == true {
-		CopyFile(shrcPath, HomeDir()+".zshrc.bck")
+		CopyFile(shrcPath, HomeDirectory()+".zshrc.bck")
 	}
 
 	profileContents := "#    ___________  _____   ____  ______ _____ _      ______ \n" +
@@ -342,8 +359,8 @@ func macEnv() {
 		"#  " + CurrentUsername() + "’s zsh run commands\n\n"
 	MakeFile(shrcPath, shrcContents, 0644)
 
-	MakeDirectory(HomeDir() + ".config")
-	MakeDirectory(HomeDir() + ".cache")
+	MakeDirectory(HomeDirectory() + ".config")
+	MakeDirectory(HomeDirectory() + ".cache")
 
 	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "setup zsh environment!\n"
 	macLdBar.Stop()
@@ -447,7 +464,7 @@ func macUtility(adminCode string) {
 	MacPMSInstall("zsh-syntax-highlighting")
 	MacPMSInstall("zsh-autosuggestions")
 	MacPMSInstall("z")
-	MakeFile(HomeDir()+".z", "", 0644)
+	MakeFile(HomeDirectory()+".z", "", 0644)
 	MacPMSInstall("fzf")
 	MacPMSInstall("exa")
 	MacPMSInstall("bat")
@@ -464,9 +481,9 @@ func macUtility(adminCode string) {
 
 	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSInstall("romkatv/powerlevel10k/powerlevel10k")
-	p10kConfPath := HomeDir() + ".config/p10k/"
-	p10kCachePath := HomeDir() + ".cache/p10k-" + CurrentUsername()
-	fontLibPath := HomeDir() + "Library/Fonts/"
+	p10kConfPath := HomeDirectory() + ".config/p10k/"
+	p10kCachePath := HomeDirectory() + ".cache/p10k-" + CurrentUsername()
+	fontLibPath := HomeDirectory() + "Library/Fonts/"
 	MakeDirectory(p10kConfPath)
 	MakeDirectory(p10kCachePath)
 	DownloadFile(p10kConfPath+"p10k-term.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-minimalism.zsh", 0644)
@@ -478,7 +495,7 @@ func macUtility(adminCode string) {
 	DownloadFile(fontLibPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
-	DownloadFile(HomeDir()+"Library/Preferences/com.googlecode.iterm2.plist", "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
+	DownloadFile(HomeDirectory()+"Library/Preferences/com.googlecode.iterm2.plist", "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
 
 	profileAppend := "# ZSH\n" +
 		"export SHELL=zsh\n\n" +
@@ -515,7 +532,7 @@ func macUtility(adminCode string) {
 		"# Z\n" +
 		"source " + brewPrefix + "etc/profile.d/z.sh\n\n" +
 		"# ALIAS4SH\n" +
-		"source " + HomeDir() + "/.config/alias4sh/alias4.sh\n\n" +
+		"source " + HomeDirectory() + "/.config/alias4sh/alias4.sh\n\n" +
 		"# Edit\n" +
 		"export EDITOR=/usr/bin/vi\n" +
 		"edit () { $EDITOR \"$@\" }\n" +
@@ -631,7 +648,7 @@ func macDevelopment(adminCode string) {
 		"plugin_repository_last_check_duration = 0\n" +
 		"disable_plugin_short_name_repository = no\n" +
 		"java_macos_integration_enable = yes\n"
-	MakeFile(HomeDir()+".asdfrc", asdfrcContents, 0644)
+	MakeFile(HomeDirectory()+".asdfrc", asdfrcContents, 0644)
 
 	ASDFInstall("perl", "latest")
 	ASDFInstall("ruby", "latest")

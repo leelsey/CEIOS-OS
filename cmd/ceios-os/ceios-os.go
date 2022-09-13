@@ -441,35 +441,33 @@ func main() {
 		"\t\t    contact@leelsey.com\n" + clrReset +
 		" ------------------------------------------------------------")
 
-	ChangeMacDesktopBackground()
+	runLdBar.Suffix = " Checking network status... "
+	runLdBar.Start()
 
-	//	runLdBar.Suffix = " Checking network status... "
-	//	runLdBar.Start()
-	//
-	//	if CheckNetStatus() != true {
-	//		runLdBar.FinalMSG = clrRed + "Network connect failed" + clrReset + "\n"
-	//		runLdBar.Stop()
-	//		fmt.Println(errors.New(lstDot + "Please check your internet connection.\n"))
-	//		goto exitPoint
-	//	}
-	//
-	//	runLdBar.Stop()
-	//
-	//	fmt.Println(clrCyan + "Need Permission" + clrReset)
-	//	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
-	//		NeedPermission(adminCode)
-	//		if CheckOperatingSystem() == "darwin" {
-	//			CEIOSmacOS(adminCode)
-	//		} else if CheckOperatingSystem() == "linux" {
-	//			//CEIOSkaliLinux(adminCode)
-	//		} else {
-	//			goto exitPoint
-	//		}
-	//		RebootOS(adminCode)
-	//	} else {
-	//		goto exitPoint
-	//	}
-	//
-	//exitPoint:
-	//	return
+	if CheckNetStatus() != true {
+		runLdBar.FinalMSG = clrRed + "Network connect failed" + clrReset + "\n"
+		runLdBar.Stop()
+		fmt.Println(errors.New(lstDot + "Please check your internet connection.\n"))
+		goto exitPoint
+	}
+
+	runLdBar.Stop()
+
+	fmt.Println(clrCyan + "Need Permission" + clrReset)
+	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
+		NeedPermission(adminCode)
+		if CheckOperatingSystem() == "darwin" {
+			CEIOSmacOS(adminCode)
+		} else if CheckOperatingSystem() == "linux" {
+			//CEIOSkaliLinux(adminCode)
+		} else {
+			goto exitPoint
+		}
+		RebootOS(adminCode)
+	} else {
+		goto exitPoint
+	}
+
+exitPoint:
+	return
 }

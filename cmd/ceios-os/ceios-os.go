@@ -27,20 +27,21 @@ var (
 	//optUnIn  = "uninstall"
 	//optRm    = "remove"
 	tryLoop   = 0
-	clrReset  = "\033[0m"
-	clrRed    = "\033[31m"
-	clrGreen  = "\033[32m"
-	clrYellow = "\033[33m"
-	clrBlue   = "\033[34m"
-	clrPurple = "\033[35m"
-	clrCyan   = "\033[36m"
-	clrGrey   = "\033[37m"
+	fntReset  = "\033[0m"
+	fntBold   = "\033[1m"
+	fntRed    = "\033[31m"
+	fntGreen  = "\033[32m"
+	fntYellow = "\033[33m"
+	fntBlue   = "\033[34m"
+	fntPurple = "\033[35m"
+	fntCyan   = "\033[36m"
+	fntGrey   = "\033[37m"
 	runLdBar  = spinner.New(spinner.CharSets[11], 50*time.Millisecond)
 )
 
 func MessageError(handling, msg, code string) {
-	errOccurred := clrRed + "\nError occurred " + clrReset + "at "
-	errMsgFormat := "\n" + clrRed + "Error >> " + clrReset + msg + " (" + code + ")"
+	errOccurred := fntRed + "\nError occurred " + fntReset + "at "
+	errMsgFormat := "\n" + fntRed + "Error >> " + fntReset + msg + " (" + code + ")"
 	if handling == "fatal" || handling == "stop" {
 		fmt.Print(errors.New("\n" + lstDot + "Fatal error" + errOccurred))
 		log.Fatalln(errMsgFormat)
@@ -63,7 +64,7 @@ func CheckError(err error, msg string) {
 
 func CheckCmdError(err error, msg, pkg string) {
 	if err != nil {
-		MessageError("print", msg+" "+clrYellow+pkg+clrReset, err.Error())
+		MessageError("print", msg+" "+fntYellow+pkg+fntReset, err.Error())
 	}
 }
 
@@ -128,7 +129,7 @@ func CheckPassword() (string, bool) {
 		_ = inputPw.Run()
 		errSudo := checkPw.Wait()
 		if errSudo != nil {
-			runLdBar.FinalMSG = clrRed + "Password check failed" + clrReset + "\n"
+			runLdBar.FinalMSG = fntRed + "Password check failed" + fntReset + "\n"
 			runLdBar.Stop()
 			if tryLoop < 3 {
 				fmt.Println(errors.New(lstDot + "Sorry, try again."))
@@ -136,11 +137,12 @@ func CheckPassword() (string, bool) {
 				fmt.Println(errors.New(lstDot + "3 incorrect password attempts."))
 			}
 		} else {
+			runLdBar.FinalMSG = ""
 			runLdBar.Stop()
 			if tryLoop == 1 {
 				ClearLine(tryLoop)
 			} else {
-				ClearLine(tryLoop * 2)
+				ClearLine(tryLoop*2 - 1)
 			}
 			return strPw, true
 		}
@@ -166,7 +168,7 @@ func NeedPermission(strPw string) {
 
 	if string(whoAmI) != "root\n" {
 		msg := "Incorrect user, please check permission of sudo.\n" +
-			lstDot + "It need sudo command of \"" + clrRed + "root" + clrReset + "\" user's permission.\n" +
+			lstDot + "It need sudo command of \"" + fntRed + "root" + fntReset + "\" user's permission.\n" +
 			lstDot + "Working username: " + string(whoAmI)
 		MessageError("fatal", msg, "User")
 	}
@@ -180,9 +182,9 @@ func RebootOS(adminCode string) {
 	reboot := exec.Command(cmdAdmin, "shutdown", "-r", "now")
 	time.Sleep(time.Second * 3)
 	if err := reboot.Run(); err != nil {
-		runLdBar.FinalMSG = clrRed + "Error: " + clrReset
+		runLdBar.FinalMSG = fntRed + "Error: " + fntReset
 		runLdBar.Stop()
-		fmt.Println(errors.New("failed to reboot Operating System"))
+		fmt.Println(errors.New(lstDot + "Failed to reboot Operating System"))
 	}
 
 	runLdBar.FinalMSG = "⣾ Restarting OS, please wait a moment ... "
@@ -430,37 +432,30 @@ func ConfigGit4sh(gitUserName, gitUserEmail string) {
 }
 
 func main() {
-	fmt.Println(clrBlue + "\n\t   ____________________  _____    ____  _____\n" +
+	fmt.Println(fntBlue + "\n\t   ____________________  _____    ____  _____\n" +
 		"\t  / ____/ ____/  _/ __ \\/ ___/   / __ \\/ ___/\n" +
 		"\t / /   / __/  / // / / /\\__ \\   / / / /\\__ \\ \n" +
 		"\t/ /___/ /____/ // /_/ /___/ /  / /_/ /___/ / \n" +
-		"\t\\____/_____/___/\\____//____/   \\____//____/\n" + clrReset +
+		"\t\\____/_____/___/\\____//____/   \\____//____/\n" + fntReset +
 		"\t   C E I O S  O S  -  B Y  L E E L S E Y\n" +
 		"     C Y B E R S E C U R I T Y  O P E R A T I O N S  O S\n" +
-		clrGrey + "\t\t\t Version " + appVer + "\n" +
-		"\t\t    contact@leelsey.com\n" + clrReset +
+		fntGrey + "\t\t\t Version " + appVer + "\n" +
+		"\t\t    contact@leelsey.com\n" + fntReset +
 		" ------------------------------------------------------------")
 
-	runLdBar.Suffix = " Checking network status... "
-	runLdBar.Start()
-
-	if CheckNetStatus() != true {
-		runLdBar.FinalMSG = clrRed + "Network connect failed" + clrReset + "\n"
-		runLdBar.Stop()
-		fmt.Println(errors.New(lstDot + "Please check your internet connection.\n"))
-		goto exitPoint
-	}
-
-	runLdBar.Stop()
-
-	fmt.Println(clrCyan + "Need Permission" + clrReset)
+	fmt.Println(fntCyan + "Need Permission" + fntReset)
 	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
 		NeedPermission(adminCode)
 		if CheckOperatingSystem() == "darwin" {
-			CEIOSmacOS(adminCode)
+			if CEIOSmacOS(adminCode) != true {
+				goto exitPoint
+			}
 		} else if CheckOperatingSystem() == "linux" {
-			//CEIOSkaliLinux(adminCode)
+			//if CEIOSkaliLinux(adminCode) != true {
+			//	goto exitPoint
+			//}
 		} else {
+			fmt.Println(errors.New(lstDot + "Unsupported Operating System" + fntReset))
 			goto exitPoint
 		}
 		RebootOS(adminCode)

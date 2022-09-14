@@ -58,7 +58,7 @@ func MessageError(handling, msg, code string) {
 
 func CheckError(err error, msg string) {
 	if err != nil {
-		MessageError("fatal", msg, err.Error())
+		MessageError("fatal", " "+msg, err.Error())
 	}
 }
 
@@ -112,7 +112,7 @@ func CheckOperatingSystem() string {
 
 func CheckPassword() (string, bool) {
 	for tryLoop < 3 {
-		fmt.Print("Password:")
+		fmt.Print(" Password:")
 		bytePw, _ := term.ReadPassword(0)
 
 		runLdBar.Suffix = " Checking password... "
@@ -129,7 +129,7 @@ func CheckPassword() (string, bool) {
 		_ = inputPw.Run()
 		errSudo := checkPw.Wait()
 		if errSudo != nil {
-			runLdBar.FinalMSG = fntRed + "Password check failed" + fntReset + "\n"
+			runLdBar.FinalMSG = fntRed + " Password check failed" + fntReset + "\n"
 			runLdBar.Stop()
 			if tryLoop < 3 {
 				fmt.Println(errors.New(lstDot + "Sorry, try again."))
@@ -195,6 +195,14 @@ func ClearLine(line int) {
 	for clear := 0; clear < line; clear++ {
 		fmt.Printf("\033[1A\033[K")
 	}
+}
+
+func TitleLine(msg string) {
+	fmt.Println(fntBold + fntCyan + " " + msg + fntReset)
+}
+
+func AlertLine(msg string) {
+	fmt.Println(errors.New(fntBold + fntRed + " " + msg + fntReset))
 }
 
 func NetHTTP(urlPath string) string {
@@ -443,7 +451,7 @@ func main() {
 		"\t\t    contact@leelsey.com\n" + fntReset +
 		" ------------------------------------------------------------")
 
-	fmt.Println(fntCyan + "Need Permission" + fntReset)
+	TitleLine("Need Permission")
 	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
 		NeedPermission(adminCode)
 		if CheckOperatingSystem() == "darwin" {

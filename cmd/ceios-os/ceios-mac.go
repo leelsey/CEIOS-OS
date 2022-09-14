@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
@@ -92,9 +93,6 @@ func MacInformation() (string, string, string, string, string, string, string) {
 	osVer := strings.Split(strings.Split(softInfo[4], ": ")[1], " ")[1]
 	deviceName := strings.Split(softInfo[8], ": ")[1]
 	userFullName := strings.Split(strings.Split(softInfo[9], ": ")[1], " (")[0]
-
-	//kernelInfo := strings.Split(strings.Join(softInfo[5:6], ""), ": ")
-	//kernel := strings.Join(kernelInfo[1:2], "")
 
 	osCode := strings.Split(osVer, ".")[0]
 	var osName string
@@ -778,44 +776,42 @@ func CEIOSmacOS(adminCode string) bool {
 		usrEmail string
 	)
 
-	//fmt.Println(fntCyan + "User Information" + fntReset)
-	//consoleReader := bufio.NewScanner(os.Stdin)
-	//fmt.Print("User name: ")
-	//consoleReader.Scan()
-	//userName := consoleReader.Text()
-	//if userName == "" {
-	//	usrName = "Unknown User"
-	//} else {
-	//	usrName = userName
-	//}
-	//fmt.Print("User email: ")
-	//consoleReader.Scan()
-	//userEmail := consoleReader.Text()
-	//if userEmail == "" {
-	//	usrEmail = "No Email Address"
-	//} else {
-	//	if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
-	//		len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
-	//		len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
-	//		usrEmail = userEmail
-	//	} else {
-	//		ClearLine(2)
-	//		fmt.Println(errors.New(lstDot + "Invalid email address format."))
-	//		return false
-	//	}
-	//}
-	//ClearLine(3)
+	TitleLine("User Information")
+	consoleReader := bufio.NewScanner(os.Stdin)
+	fmt.Print("User name: ")
+	consoleReader.Scan()
+	userName := consoleReader.Text()
+	if userName == "" {
+		usrName = "Unknown User"
+	} else {
+		usrName = userName
+	}
+	fmt.Print("User email: ")
+	consoleReader.Scan()
+	userEmail := consoleReader.Text()
+	if userEmail == "" {
+		usrEmail = "No Email Address"
+	} else {
+		if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
+			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
+			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
+			usrEmail = userEmail
+		} else {
+			ClearLine(2)
+			fmt.Println(errors.New(lstDot + "Invalid email address format."))
+			return false
+		}
+	}
+	ClearLine(3)
 
-	userName := ""
-	userEmail := ""
-
-	fmt.Println(fntCyan + "Check your status" + fntReset)
+	TitleLine("Check Computer Status")
 	osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName := MacInformation()
 	runLdBar.Suffix = " Checking internet connection... "
 	runLdBar.Start()
 	if CheckNetStatus() != true {
-		runLdBar.FinalMSG = fntRed + "Network connect failed" + fntReset + "\n"
 		runLdBar.Stop()
+		ClearLine(1)
+		AlertLine("Network Connect Failed")
 		fmt.Println(errors.New(lstDot + "Please check your internet connection."))
 		return false
 	}
@@ -827,32 +823,35 @@ func CEIOSmacOS(adminCode string) bool {
 	} else if CheckArchitecture() == "amd64" {
 		chipArch = "   Processor "
 	}
-	macInfo := fntBold + "   " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
-		fntBold + "   " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
+	macInfo := fntBold + " " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
+		fntBold + " " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
 		fntBold + "   Memory " + fntReset + memoryInfo + "\n" + fntBold + "   Device " + fntReset + deviceName + "\n" +
 		fntBold + "   User " + fntReset + userFullName
 
 	if userFullName != userName {
 		var alertAnswer string
-		fmt.Print(fntRed + "Warning!\n" + fntReset + "Your user usrName is different from the system.\n" + "If you wish to continue type (Yes) then press return: ")
+		AlertLine("Warning!")
+		fmt.Print(lstDot + "Your user username is different from the system.\n If you wish to continue type (Yes) then press return: ")
 		_, errG4sOpt := fmt.Scanln(&alertAnswer)
 		if errG4sOpt != nil {
 			alertAnswer = "Enter"
 		}
 		if alertAnswer == "Yes" {
 			ClearLine(3)
-			fmt.Println(fntCyan + "System Information\n" + fntReset + macInfo + " (" + usrName + " - " + usrEmail + ")")
+			TitleLine("System Information")
+			fmt.Println(macInfo + " (" + usrName + " - " + usrEmail + ")")
 		} else {
 			ClearLine(1)
 			fmt.Println(errors.New(lstDot + "Installation canceled by user."))
 			return false
 		}
 	} else {
-		fmt.Println(fntCyan + "System Information\n" + fntReset + macInfo + " (" + usrEmail + ")")
+		TitleLine("System Information")
+		fmt.Println(macInfo + " (" + usrEmail + ")")
 	}
 
 	time.Sleep(time.Millisecond * 300)
-	fmt.Println(fntCyan + "CEIOS OS Installation" + fntReset)
+	TitleLine("CEIOS OS Installation")
 	macBegin(adminCode)
 	macEnv()
 	macDependency(adminCode)
@@ -863,13 +862,13 @@ func CEIOSmacOS(adminCode string) bool {
 	macSecurity(adminCode)
 	macEnd(userName, userEmail)
 
-	fmt.Println(" ------------------------------------------------------------\n" +
-		fntCyan + "Finished CEIOS OS Installation" + fntReset +
-		"\n Please" + fntRed + " RESTART " + fntReset + "your terminal and macOS!\n" +
-		lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
+	fmt.Println(" ------------------------------------------------------------")
+	TitleLine("Finished CEIOS OS Installation")
+	fmt.Println(" Please" + fntBold + fntRed + " RESTART " + fntReset + "your " + fntPurple + "Terminal and macOS!\n" +
+		fntReset + lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
 		lstDot + "Or restart the Terminal application by yourself.\n" +
-		lstDot + "Also you need " + fntRed + "RESTART macOS " + fntReset + " to apply " + "the changes.\n" +
-		fntCyan + "System Update and Restart OS" + fntReset)
+		lstDot + "Also you need restart macOS to apply the changes.")
+	TitleLine("System Update and Restart OS")
 	MacOSUpdate()
 	return true
 }

@@ -18,6 +18,8 @@ import (
 var (
 	appVer   = "0.1"
 	lstDot   = " • "
+	archType = CheckArchitecture()
+	osType   = CheckOperatingSystem()
 	shrcPath = HomeDirectory() + ".zshrc"
 	prfPath  = HomeDirectory() + ".zprofile"
 	cmdAdmin = "sudo"
@@ -451,18 +453,31 @@ func main() {
 		"\t\t    contact@leelsey.com\n" + fntReset +
 		" ------------------------------------------------------------")
 
+	if CurrentUsername() == "root" {
+		AlertLine("Security Problem")
+		fmt.Println(errors.New(lstDot + "Don't run this as ROOT user"))
+		goto exitPoint
+	}
+
+	if archType != "arm64" && archType != "amd64" {
+		AlertLine("Architecture Problem")
+		fmt.Println(errors.New(lstDot + "This OS only supports ARM64 and AMD64"))
+		goto exitPoint
+	}
+
 	TitleLine("Need Permission")
 	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
 		NeedPermission(adminCode)
-		if CheckOperatingSystem() == "darwin" {
-			if CEIOSmacOS(adminCode) != true {
+		if osType == "darwin" {
+			if CEIOS4macOS(adminCode) != true {
 				goto exitPoint
 			}
-		} else if CheckOperatingSystem() == "linux" {
-			//if CEIOSkaliLinux(adminCode) != true {
+		} else if osType == "linux" {
+			//if CEIOS4Kali(adminCode) != true {
 			//	goto exitPoint
 			//}
 		} else {
+			AlertLine("OS Problem")
 			fmt.Println(errors.New(lstDot + "Unsupported Operating System" + fntReset))
 			goto exitPoint
 		}

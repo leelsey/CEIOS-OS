@@ -12,49 +12,43 @@ import (
 )
 
 var (
-	arm64Path  = "/opt/homebrew/"
-	amd64Path  = "/usr/local/"
-	brewPrefix = MacPMSPrefix()
-	macPMS     = MacPMSPath()
-	macGit     = "/usr/bin/git"
-	macASDF    = MacASDFPath()
-	macAlt     = "--cask"
-	macRepo    = "tap"
-	macLdBar   = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
+	arm64Path = "/opt/homebrew/"
+	amd64Path = "/usr/local/"
+	pmsPrefix = MacPMSPrefix()
+	macPMS    = MacPMSPath()
+	macGit    = "/usr/bin/git"
+	macASDF   = MacASDFPath()
+	macAlt    = "--cask"
+	macRepo   = "tap"
+	macLdBar  = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
 
 func MacPMSPrefix() string {
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		return arm64Path
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		return amd64Path
-	} else {
-		MessageError("fatal", "Error:", "Unknown architecture")
-		return ""
 	}
+	return ""
 }
 
 func MacPMSPath() string {
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		return arm64Path + "bin/brew"
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		return amd64Path + "bin/brew"
-	} else {
-		MessageError("fatal", "Error:", "Unknown architecture")
-		return ""
 	}
+	return ""
 }
 
 func MacASDFPath() string {
 	asdfPath := "opt/asdf/libexec/bin/asdf"
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		return arm64Path + asdfPath
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		return amd64Path + asdfPath
-	} else {
-		MessageError("fatal", "Error:", "Unknown architecture")
-		return ""
 	}
+	return ""
 }
 
 func MacOSUpdate() {
@@ -108,23 +102,20 @@ func MacInformation() (string, string, string, string, string, string, string) {
 		return "", "", "", "", "", "", ""
 	}
 
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		modelInfo := strings.Split(hardInfo[4], ": ")[1]
 		chipInfo := strings.Split(hardInfo[6], ": ")[1]
 		memoryInfo := strings.Split(hardInfo[8], ": ")[1]
 		runLdBar.Stop()
 		return osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		modelInfo := strings.Split(hardInfo[4], ": ")[1]
 		processorInfo := strings.Split(hardInfo[6], ": ")[1] + " " + strings.Split(hardInfo[7], ": ")[1]
 		memoryInfo := strings.Split(hardInfo[13], ": ")[1]
 		runLdBar.Stop()
 		return osName, osVer, modelInfo, processorInfo, memoryInfo, deviceName, userFullName
-	} else {
-		runLdBar.Stop()
-		MessageError("fatal", "Unsupported", "architecture")
-		return "", "", "", "", "", "", ""
 	}
+	return "", "", "", "", "", "", ""
 }
 
 func OpenMacApplication(appName string) {
@@ -195,7 +186,7 @@ func MacPMSUpgrade() {
 func MacPMSRepository(repo string) {
 	brewRepo := strings.Split(repo, "/")
 	repoPath := strings.Join(brewRepo[0:1], "") + "/homebrew-" + strings.Join(brewRepo[1:2], "")
-	if CheckExists(brewPrefix+"Homebrew/Library/Taps/"+repoPath) != true {
+	if CheckExists(pmsPrefix+"Homebrew/Library/Taps/"+repoPath) != true {
 		brewRepo := exec.Command(macPMS, macRepo, repo)
 		err := brewRepo.Run()
 		CheckCmdError(err, "Brew failed to add ", repo)
@@ -215,7 +206,7 @@ func MacPMSRemoveCache() {
 }
 
 func MacPMSInstall(pkg string) {
-	if CheckExists(brewPrefix+"Cellar/"+pkg) != true {
+	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
 		MacPMSUpdate()
 		brewIns := exec.Command(macPMS, optIns, pkg)
 		brewIns.Stderr = os.Stderr
@@ -225,7 +216,7 @@ func MacPMSInstall(pkg string) {
 }
 
 func MacPMSInstallQuiet(pkg string) {
-	if CheckExists(brewPrefix+"Cellar/"+pkg) != true {
+	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
 		MacPMSUpdate()
 		brewIns := exec.Command(macPMS, optIns, "--quiet", pkg)
 		err := brewIns.Run()
@@ -234,7 +225,7 @@ func MacPMSInstallQuiet(pkg string) {
 }
 
 func MacPMSInstallCask(pkg, appName string) {
-	if CheckExists(brewPrefix+"Caskroom/"+pkg) != true {
+	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
 		MacPMSUpdate()
 		if CheckExists("/Applications/"+appName+".app") != true {
 			brewIns := exec.Command(macPMS, optIns, macAlt, pkg)
@@ -249,7 +240,7 @@ func MacPMSInstallCask(pkg, appName string) {
 }
 
 func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
-	if CheckExists(brewPrefix+"Caskroom/"+pkg) != true {
+	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
 		MacPMSUpdate()
 		NeedPermission(adminCode)
 		if CheckExists(appPath) != true {
@@ -265,8 +256,8 @@ func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
 }
 
 func MacJavaHome(srcVer, dstVer, adminCode string) {
-	if CheckExists(brewPrefix+"Cellar/openjdk"+srcVer) == true {
-		LinkFile(brewPrefix+"opt/openjdk"+srcVer+" /libexec/openjdk.jdk", "/Library/Java/JavaVirtualMachines/openjdk"+dstVer+".jdk", "symbolic", "root", adminCode)
+	if CheckExists(pmsPrefix+"Cellar/openjdk"+srcVer) == true {
+		LinkFile(pmsPrefix+"opt/openjdk"+srcVer+" /libexec/openjdk.jdk", "/Library/Java/JavaVirtualMachines/openjdk"+dstVer+".jdk", "symbolic", "root", adminCode)
 	}
 }
 
@@ -307,9 +298,9 @@ func MacInstallHopper(adminCode string) {
 	errUnmount := unmountDmg.Run()
 	CheckError(errUnmount, "Failed to unmount "+fntYellow+"Hopper Disassembler"+fntReset)
 
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		ChangeMacApplicationIcon(appName, "Hopper Disassembler ARM64.icns", adminCode)
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		ChangeMacApplicationIcon(appName, "Hopper Disassembler AMD64.icns", adminCode)
 	}
 }
@@ -326,8 +317,8 @@ func macBegin(adminCode string) {
 
 		MacInstallBrew(adminCode)
 	}
-	err := os.Chmod(brewPrefix+"share", 0755)
-	CheckError(err, "Failed to change permissions on "+brewPrefix+"share to 755")
+	err := os.Chmod(pmsPrefix+"share", 0755)
+	CheckError(err, "Failed to change permissions on "+pmsPrefix+"share to 755")
 
 	MacPMSUpdate()
 	MacPMSRepository("homebrew/core")
@@ -432,7 +423,7 @@ func macDependency(adminCode string) {
 	MacJavaHome("@17", "-17", adminCode)
 	MacPMSInstall("openjdk@11")
 	MacJavaHome("@11", "-11", adminCode)
-	if CheckArchitecture() == "amd64" {
+	if archType == "amd64" {
 		MacPMSInstall("openjdk@8")
 		MacJavaHome("@8", "-8", adminCode)
 	}
@@ -510,7 +501,7 @@ func macUtility(adminCode string) {
 	profileAppend := "# ZSH\n" +
 		"export SHELL=zsh\n\n" +
 		"# POWERLEVEL10K\n" +
-		"source " + brewPrefix + "opt/powerlevel10k/powerlevel10k.zsh-theme\n" +
+		"source " + pmsPrefix + "opt/powerlevel10k/powerlevel10k.zsh-theme\n" +
 		"if [[ -r \"${XDG_CACHE_HOME:-" + p10kCachePath + "}/p10k-instant-prompt-${(%):-%n}.zsh\" ]]; then\n" +
 		"  source \"${XDG_CACHE_HOME:-" + p10kCachePath + "}/p10k-instant-prompt-${(%):-%n}.zsh\"\n" +
 		"fi\n" +
@@ -531,16 +522,16 @@ func macUtility(adminCode string) {
 		"fi\n\n" +
 		"# ZSH-COMPLETIONS\n" +
 		"if type brew &>/dev/null; then\n" +
-		"  FPATH=" + brewPrefix + "share/zsh-completions:$FPATH\n" +
+		"  FPATH=" + pmsPrefix + "share/zsh-completions:$FPATH\n" +
 		"  autoload -Uz compinit\n" +
 		"  compinit\n" +
 		"fi\n\n" +
 		"# ZSH SYNTAX HIGHLIGHTING\n" +
-		"source " + brewPrefix + "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n" +
+		"source " + pmsPrefix + "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n" +
 		"# ZSH AUTOSUGGESTIONS\n" +
-		"source " + brewPrefix + "share/zsh-autosuggestions/zsh-autosuggestions.zsh\n\n" +
+		"source " + pmsPrefix + "share/zsh-autosuggestions/zsh-autosuggestions.zsh\n\n" +
 		"# Z\n" +
-		"source " + brewPrefix + "etc/profile.d/z.sh\n\n" +
+		"source " + pmsPrefix + "etc/profile.d/z.sh\n\n" +
 		"# ALIAS4SH\n" +
 		"source " + HomeDirectory() + "/.config/alias4sh/alias4.sh\n\n" +
 		"# Edit\n" +
@@ -642,7 +633,7 @@ func macDevelopment(adminCode string) {
 	shrcAppend := "# DIRENV\n" +
 		"eval \"$(direnv hook zsh)\"\n\n" +
 		"# ASDF VM\n" +
-		"source " + brewPrefix + "opt/asdf/libexec/asdf.sh\n\n"
+		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
 
 	asdfrcContents := "#              _____ _____  ______  __      ____  __ \n" +
@@ -724,7 +715,7 @@ func macSecurity(adminCode string) {
 	MacPMSInstall("autopsy")
 	MacPMSInstall("virustotal-cli")
 
-	MacPMSInstallCaskSudo("codeql", "CodeQL", brewPrefix+"Caskroom/Codeql", adminCode)
+	MacPMSInstallCaskSudo("codeql", "CodeQL", pmsPrefix+"Caskroom/Codeql", adminCode)
 	MacPMSInstallCask("little-snitch", "Little Snitch")
 	ChangeMacApplicationIcon("Little Snitch", "Little Snitch.icns", adminCode)
 	MacPMSInstallCask("micro-snitch", "Micro Snitch")
@@ -769,7 +760,7 @@ func macEnd(userName, userEmail string) {
 	macLdBar.Stop()
 }
 
-func CEIOSmacOS(adminCode string) bool {
+func CEIOS4macOS(adminCode string) bool {
 	var (
 		chipArch string
 		usrName  string
@@ -818,9 +809,9 @@ func CEIOSmacOS(adminCode string) bool {
 	runLdBar.Stop()
 	ClearLine(1)
 
-	if CheckArchitecture() == "arm64" {
+	if archType == "arm64" {
 		chipArch = "   Chip "
-	} else if CheckArchitecture() == "amd64" {
+	} else if archType == "amd64" {
 		chipArch = "   Processor "
 	}
 	macInfo := fntBold + " " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
@@ -831,7 +822,8 @@ func CEIOSmacOS(adminCode string) bool {
 	if userFullName != userName {
 		var alertAnswer string
 		AlertLine("Warning!")
-		fmt.Print(lstDot + "Your user username is different from the system.\n If you wish to continue type (Yes) then press return: ")
+		fmt.Println(errors.New(lstDot + "Your user username is different from the system."))
+		fmt.Print(" If you wish to continue type (Yes) then press return: ")
 		_, errG4sOpt := fmt.Scanln(&alertAnswer)
 		if errG4sOpt != nil {
 			alertAnswer = "Enter"

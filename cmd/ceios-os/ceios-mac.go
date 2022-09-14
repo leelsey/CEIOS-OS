@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
 	"os"
@@ -64,7 +64,7 @@ func MacOSUpdate() {
 	errOSUpdate := osUpdate.Run()
 	CheckError(errOSUpdate, "Failed to update Operating System")
 
-	runLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "update OS!\n"
+	runLdBar.FinalMSG = lstDot + fntGreen + "Succeed " + fntReset + "update OS!\n"
 	runLdBar.Stop()
 }
 
@@ -82,40 +82,51 @@ func MacHardware() string {
 	return string(hardInfo)
 }
 
-func MacInformatrion() (string, string) {
+func MacInformation() (string, string, string, string, string, string, string) {
+	runLdBar.Suffix = " Checking system... "
+	runLdBar.Start()
+
 	softInfo := strings.Split(MacSoftware(), "\n")
 	hardInfo := strings.Split(MacHardware(), "\n")
 
-	osInfo := strings.Split(strings.Join(softInfo[4:5], ""), ": ")
-	kernelInfo := strings.Split(strings.Join(softInfo[5:6], ""), ": ")
-	deviceInfo := strings.Split(strings.Join(softInfo[8:9], ""), ": ")
-	userInfo := strings.Split(strings.Join(softInfo[9:10], ""), ": ")
-	modelInfo := strings.Split(strings.Join(hardInfo[5:6], ""), ": ")
-	processorInfo := strings.Split(strings.Join(hardInfo[6:7], ""), ": ")
-	clockInfo := strings.Split(strings.Join(hardInfo[7:8], ""), ": ")
-	memoryInfo := strings.Split(strings.Join(hardInfo[13:14], ""), ": ")
+	osVer := strings.Split(strings.Split(softInfo[4], ": ")[1], " ")[1]
+	deviceName := strings.Split(softInfo[8], ": ")[1]
+	userFullName := strings.Split(strings.Split(softInfo[9], ": ")[1], " (")[0]
 
-	system := strings.Join(osInfo[1:2], "")
-	kernel := strings.Join(kernelInfo[1:2], "")
-	device := strings.Join(deviceInfo[1:2], "")
-	user := strings.Join(userInfo[1:2], "")
-	userfullname := strings.Split(user, " (")
-	fullname := strings.Join(userfullname[0:1], "")
-	modelver := strings.Split(strings.Join(modelInfo[1:2], ""), ",")
-	model := strings.Join(modelver[0:1], "")
-	processor := strings.Join(processorInfo[1:2], "")
-	clock := strings.Join(clockInfo[1:2], "")
-	memory := strings.Join(memoryInfo[1:2], "")
+	//kernelInfo := strings.Split(strings.Join(softInfo[5:6], ""), ": ")
+	//kernel := strings.Join(kernelInfo[1:2], "")
 
-	macInfo := lstDot + clrGreen + "User name" + clrReset + ": " + user + "\n" +
-		lstDot + clrGreen + "Device name" + clrReset + ": " + device + "\n" +
-		lstDot + clrGreen + "System" + clrReset + ": " + system + " - " + kernel + "\n" +
-		//lstDot + clrGreen + "Kernel" + clrReset + ": " + kernel + "\n" +
-		lstDot + clrGreen + "Model" + clrReset + ": " + model + "\n" +
-		lstDot + clrGreen + "Processor" + clrReset + ": " + processor + " (" + clock + ")\n" +
-		lstDot + clrGreen + "Memory" + clrReset + ": " + memory
+	osCode := strings.Split(osVer, ".")[0]
+	var osName string
+	if osCode == "13" {
+		osName = "macOS Ventura"
+	} else if osCode == "12" {
+		osName = "macOS Monterey"
+	} else if osCode == "11" {
+		osName = "macOS Big Sur"
+	} else {
+		runLdBar.Stop()
+		MessageError("fatal", "Unsupported", "macOS version")
+		return "", "", "", "", "", "", ""
+	}
 
-	return macInfo, fullname
+	if CheckArchitecture() == "arm64" {
+		modelInfo := strings.Split(hardInfo[4], ": ")[1]
+		chipInfo := strings.Split(hardInfo[6], ": ")[1]
+		memoryInfo := strings.Split(hardInfo[8], ": ")[1]
+		runLdBar.Stop()
+		return osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName
+	} else if CheckArchitecture() == "amd64" {
+		modelInfo := strings.Split(hardInfo[4], ": ")[1]
+		processorInfo := strings.Split(hardInfo[6], ": ")[1] + " " + strings.Split(hardInfo[7], ": ")[1]
+		memoryInfo := strings.Split(hardInfo[13], ": ")[1]
+		runLdBar.Stop()
+		return osName, osVer, modelInfo, processorInfo, memoryInfo, deviceName, userFullName
+	} else {
+		runLdBar.Stop()
+		MessageError("fatal", "Unsupported", "architecture")
+		return "", "", "", "", "", "", ""
+	}
 }
 
 func OpenMacApplication(appName string) {
@@ -154,7 +165,8 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 
 func ChangeMacWallpaper() {
 	srcWp := WorkingDirectory() + ".ceios-wallpaper.png"
-	DownloadFile(srcWp, "https://raw.githubusercontent.com/leelsey/CEIOS/main/pictures/wallpaper/desktop.jpeg", 0755)
+	//DownloadFile(srcWp, "https://raw.githubusercontent.com/leelsey/CEIOS/main/pictures/wallpaper/desktop.jpeg", 0755)
+	DownloadFile(srcWp, "https://gitlab.com/kalilinux/packages/kali-wallpapers/-/raw/kali/master/2023/backgrounds/kali/kali-cubism-16x9.png?inline=false", 0755)
 
 	chWpPath := WorkingDirectory() + ".ceios-chwap.sh"
 	chWpSrc := "osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"" + srcWp + "\"'"
@@ -287,7 +299,7 @@ func MacInstallHopper(adminCode string) {
 
 	mountHopper := exec.Command("hdiutil", "attach", dlHopperPath)
 	errMount := mountHopper.Run()
-	CheckError(errMount, "Failed to mount "+clrYellow+"Hopper.dmg"+clrReset)
+	CheckError(errMount, "Failed to mount "+fntYellow+"Hopper.dmg"+fntReset)
 	RemoveFile(dlHopperPath)
 
 	appName := "Hopper Disassembler v4"
@@ -295,7 +307,7 @@ func MacInstallHopper(adminCode string) {
 
 	unmountDmg := exec.Command("hdiutil", "unmount", "/Volumes/Hopper Disassembler")
 	errUnmount := unmountDmg.Run()
-	CheckError(errUnmount, "Failed to unmount "+clrYellow+"Hopper Disassembler"+clrReset)
+	CheckError(errUnmount, "Failed to unmount "+fntYellow+"Hopper Disassembler"+fntReset)
 
 	if CheckArchitecture() == "arm64" {
 		ChangeMacApplicationIcon(appName, "Hopper Disassembler ARM64.icns", adminCode)
@@ -308,11 +320,11 @@ func macBegin(adminCode string) {
 	if CheckExists(macPMS) == true {
 		macLdBar.Suffix = " Updating homebrew... "
 		macLdBar.Start()
-		macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "update homebrew!\n"
+		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "update homebrew!\n"
 	} else {
 		macLdBar.Suffix = " Installing homebrew... "
 		macLdBar.Start()
-		macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install and update homebrew!\n"
+		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install and update homebrew!\n"
 
 		MacInstallBrew(adminCode)
 	}
@@ -362,7 +374,7 @@ func macEnv() {
 	MakeDirectory(HomeDirectory() + ".config")
 	MakeDirectory(HomeDirectory() + ".cache")
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "setup zsh environment!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
 	macLdBar.Stop()
 }
 
@@ -437,7 +449,7 @@ func macDependency(adminCode string) {
 	MacPMSInstall("mysql")
 	MacPMSInstall("redis")
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install dependencies!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install dependencies!\n"
 	macLdBar.Stop()
 }
 
@@ -548,7 +560,7 @@ func macUtility(adminCode string) {
 	MacPMSInstallCask("transmission", "Transmission")
 	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -570,7 +582,7 @@ func macProductivity(adminCode string) {
 	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
 	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -600,7 +612,7 @@ func macCreativity(adminCode string) {
 	OpenMacApplication("Loopback")
 	MacPMSInstallCask("obs", "OBS")
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -672,11 +684,11 @@ func macDevelopment(adminCode string) {
 	ASDFReshim()
 
 	MacPMSInstallCask("iterm2", "iTerm")
-	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
-	ChangeMacApplicationIcon("IntelliJ IDEA", "IntelliJ IDEA.icns", adminCode)
+	MacPMSInstallCask("neovide", "Neovide")
 	MacPMSInstallCask("visual-studio-code", "Visual Studio Code")
 	MacPMSInstallCask("atom", "Atom")
-	MacPMSInstallCask("neovide", "Neovide")
+	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
+	ChangeMacApplicationIcon("IntelliJ IDEA", "IntelliJ IDEA.icns", adminCode)
 	ChangeMacApplicationIcon("Neovide", "Neovide.icns", adminCode)
 	MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
 	ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
@@ -685,7 +697,6 @@ func macDevelopment(adminCode string) {
 	MacPMSInstallCask("fork", "Fork")
 	MacPMSInstallCask("tableplus", "TablePlus")
 	MacPMSInstallCask("proxyman", "Proxyman")
-	MacPMSInstallCask("postman", "Postman")
 	MacPMSInstallCask("paw", "Paw")
 	MacPMSInstallCask("boop", "Boop")
 	MacPMSInstallCask("httpie", "HTTPie")
@@ -696,7 +707,7 @@ func macDevelopment(adminCode string) {
 	MacPMSInstallCask("staruml", "StarUML")
 	ChangeMacApplicationIcon("StarUML", "StarUML.icns", adminCode)
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -738,7 +749,7 @@ func macSecurity(adminCode string) {
 	MacPMSInstallCaskSudo("zenmap", "Zenmap", "/Applications/Zenmap.app", adminCode)
 	ChangeMacApplicationIcon("Zenmap", "Zenmap.icns", adminCode)
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
 	macLdBar.Stop()
 }
 
@@ -756,42 +767,92 @@ func macEnd(userName, userEmail string) {
 	ConfigGit4sh(userName, userEmail)
 	ChangeMacWallpaper()
 
-	macLdBar.FinalMSG = lstDot + clrGreen + "Succeed " + clrReset + "clean up homebrew's cache!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
 	macLdBar.Stop()
 }
 
-func CEIOSmacOS(adminCode string) {
-	fmt.Println(clrCyan + "Return your information" + clrReset)
-	consoleReader := bufio.NewScanner(os.Stdin)
-	fmt.Print("User name: ")
-	consoleReader.Scan()
-	userName := consoleReader.Text()
-	fmt.Print("User email: ")
-	consoleReader.Scan()
-	userEmail := consoleReader.Text()
-	ClearLine(3)
+func CEIOSmacOS(adminCode string) bool {
+	var (
+		chipArch string
+		usrName  string
+		usrEmail string
+	)
 
-	macInfo, fullName := MacInformatrion()
+	//fmt.Println(fntCyan + "User Information" + fntReset)
+	//consoleReader := bufio.NewScanner(os.Stdin)
+	//fmt.Print("User name: ")
+	//consoleReader.Scan()
+	//userName := consoleReader.Text()
+	//if userName == "" {
+	//	usrName = "Unknown User"
+	//} else {
+	//	usrName = userName
+	//}
+	//fmt.Print("User email: ")
+	//consoleReader.Scan()
+	//userEmail := consoleReader.Text()
+	//if userEmail == "" {
+	//	usrEmail = "No Email Address"
+	//} else {
+	//	if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
+	//		len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
+	//		len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
+	//		usrEmail = userEmail
+	//	} else {
+	//		ClearLine(2)
+	//		fmt.Println(errors.New(lstDot + "Invalid email address format."))
+	//		return false
+	//	}
+	//}
+	//ClearLine(3)
 
-	if fullName != userName {
+	userName := ""
+	userEmail := ""
+
+	fmt.Println(fntCyan + "Check your status" + fntReset)
+	osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName := MacInformation()
+	runLdBar.Suffix = " Checking internet connection... "
+	runLdBar.Start()
+	if CheckNetStatus() != true {
+		runLdBar.FinalMSG = fntRed + "Network connect failed" + fntReset + "\n"
+		runLdBar.Stop()
+		fmt.Println(errors.New(lstDot + "Please check your internet connection."))
+		return false
+	}
+	runLdBar.Stop()
+	ClearLine(1)
+
+	if CheckArchitecture() == "arm64" {
+		chipArch = "   Chip "
+	} else if CheckArchitecture() == "amd64" {
+		chipArch = "   Processor "
+	}
+	macInfo := fntBold + "   " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
+		fntBold + "   " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
+		fntBold + "   Memory " + fntReset + memoryInfo + "\n" + fntBold + "   Device " + fntReset + deviceName + "\n" +
+		fntBold + "   User " + fntReset + userFullName
+
+	if userFullName != userName {
 		var alertAnswer string
-		fmt.Print(clrRed + "Warning\n" + clrReset + "Your user name is different from the system.\n" + "If you wish to continue type (Yes) then press return: ")
+		fmt.Print(fntRed + "Warning!\n" + fntReset + "Your user usrName is different from the system.\n" + "If you wish to continue type (Yes) then press return: ")
 		_, errG4sOpt := fmt.Scanln(&alertAnswer)
 		if errG4sOpt != nil {
 			alertAnswer = "Enter"
 		}
 		if alertAnswer == "Yes" {
 			ClearLine(3)
+			fmt.Println(fntCyan + "System Information\n" + fntReset + macInfo + " (" + usrName + " - " + usrEmail + ")")
 		} else {
-			os.Exit(0)
+			ClearLine(1)
+			fmt.Println(errors.New(lstDot + "Installation canceled by user."))
+			return false
 		}
+	} else {
+		fmt.Println(fntCyan + "System Information\n" + fntReset + macInfo + " (" + usrEmail + ")")
 	}
-	fmt.Println(clrCyan + "User Information\n" + clrReset +
-		lstDot + clrGreen + "User name" + clrReset + ": " + userName + "\n" +
-		lstDot + clrGreen + "User email" + clrReset + ": " + userEmail + "\n" +
-		clrCyan + "System Information\n" + clrReset + macInfo)
 
-	fmt.Println(clrCyan + "CEIOS OS Installation" + clrReset)
+	time.Sleep(time.Millisecond * 300)
+	fmt.Println(fntCyan + "CEIOS OS Installation" + fntReset)
 	macBegin(adminCode)
 	macEnv()
 	macDependency(adminCode)
@@ -803,11 +864,12 @@ func CEIOSmacOS(adminCode string) {
 	macEnd(userName, userEmail)
 
 	fmt.Println(" ------------------------------------------------------------\n" +
-		clrCyan + "Finished CEIOS OS Installation" + clrReset +
-		"\n Please" + clrRed + " RESTART " + clrReset + "your terminal and macOS!\n" +
+		fntCyan + "Finished CEIOS OS Installation" + fntReset +
+		"\n Please" + fntRed + " RESTART " + fntReset + "your terminal and macOS!\n" +
 		lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
 		lstDot + "Or restart the Terminal application by yourself.\n" +
-		lstDot + "Also you need " + clrRed + "RESTART macOS " + clrReset + " to apply " + "the changes.\n" +
-		clrCyan + "System Update and Restart OS" + clrReset)
+		lstDot + "Also you need " + fntRed + "RESTART macOS " + fntReset + " to apply " + "the changes.\n" +
+		fntCyan + "System Update and Restart OS" + fntReset)
 	MacOSUpdate()
+	return true
 }

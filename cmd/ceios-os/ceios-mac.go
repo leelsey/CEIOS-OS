@@ -16,9 +16,8 @@ var (
 	amd64Path = "/usr/local/"
 	pmsPrefix = MacPMSPrefix()
 	macPMS    = MacPMSPath()
-	macGit    = "/usr/bin/git"
-	macASDF   = MacASDFPath()
 	macAlt    = "--cask"
+	macGit    = "/usr/bin/git"
 	macRepo   = "tap"
 	macLdBar  = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
@@ -43,6 +42,16 @@ func MacPMSPath() string {
 
 func MacASDFPath() string {
 	asdfPath := "opt/asdf/libexec/bin/asdf"
+	if archType == "arm64" {
+		return arm64Path + asdfPath
+	} else if archType == "amd64" {
+		return amd64Path + asdfPath
+	}
+	return ""
+}
+
+func MacDockerPath() string {
+	asdfPath := "bin/docker"
 	if archType == "arm64" {
 		return arm64Path + asdfPath
 	} else if archType == "amd64" {
@@ -118,10 +127,10 @@ func MacInformation() (string, string, string, string, string, string, string) {
 	return "", "", "", "", "", "", ""
 }
 
-func OpenMacApplication(appName string) {
+func StartMacApplication(appName string) {
 	runApp := exec.Command("open", "/Applications/"+appName+".app")
 	err := runApp.Run()
-	CheckCmdError(err, "ASDF-VM failed to add", appName)
+	CheckCmdError(err, "Failed to start", appName)
 }
 
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
@@ -261,6 +270,13 @@ func MacJavaHome(srcVer, dstVer, adminCode string) {
 	}
 }
 
+func MacInstallRosetta2() {
+	osUpdate := exec.Command("softwareupdate", "--install-rosetta", "--agree-to-license")
+	if err := osUpdate.Run(); err != nil {
+		CheckCmdError(err, "Failed to install", "Rosetta 2")
+	}
+}
+
 func MacInstallBrew(adminCode string) {
 	insBrewPath := WorkingDirectory() + ".ceios-brew.sh"
 	DownloadFile(insBrewPath, "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", 0755)
@@ -363,6 +379,10 @@ func macEnv() {
 	MakeDirectory(HomeDirectory() + ".config")
 	MakeDirectory(HomeDirectory() + ".cache")
 
+	if CheckArchitecture() == "arm64" {
+		MacInstallRosetta2()
+	}
+
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
 	macLdBar.Stop()
 }
@@ -446,7 +466,7 @@ func macUtility(adminCode string) {
 	macLdBar.Suffix = " Installing - applications... "
 	macLdBar.Start()
 
-	ConfigAlias4sh()
+	Alias4shSet()
 	MacPMSInstall("bash")
 	MacPMSInstall("zsh")
 	MacPMSInstall("openssh")
@@ -598,7 +618,7 @@ func macCreativity(adminCode string) {
 	MacPMSInstallCask("blender", "Blender")
 	ChangeMacApplicationIcon("Blender", "Blender.icns", adminCode)
 	MacPMSInstallCaskSudo("loopback", "Loopback", "/Applications/Loopback.app", adminCode)
-	OpenMacApplication("Loopback")
+	StartMacApplication("Loopback")
 	MacPMSInstallCask("obs", "OBS")
 
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
@@ -628,49 +648,10 @@ func macDevelopment(adminCode string) {
 	MacPMSInstall("dasel")
 	MacPMSInstall("watchman")
 	MacPMSInstall("direnv")
-	MacPMSInstall("asdf")
 
 	shrcAppend := "# DIRENV\n" +
-		"eval \"$(direnv hook zsh)\"\n\n" +
-		"# ASDF VM\n" +
-		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
+		"eval \"$(direnv hook zsh)\"\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
-
-	asdfrcContents := "#              _____ _____  ______  __      ____  __ \n" +
-		"#       /\\    / ____|  __ \\|  ____| \\ \\    / /  \\/  |\n" +
-		"#      /  \\  | (___ | |  | | |__ ____\\ \\  / /| \\  / |\n" +
-		"#     / /\\ \\  \\___ \\| |  | |  __|_____\\ \\/ / | |\\/| |\n" +
-		"#    / ____ \\ ____) | |__| | |         \\  /  | |  | |\n" +
-		"#   /_/    \\_\\_____/|_____/|_|          \\/   |_|  |_|\n#\n" +
-		"#  " + CurrentUsername() + "’s ASDF-VM run commands\n\n" +
-		"legacy_version_file = yes\n" +
-		"use_release_candidates = no\n" +
-		"always_keep_download = no\n" +
-		"plugin_repository_last_check_duration = 0\n" +
-		"disable_plugin_short_name_repository = no\n" +
-		"java_macos_integration_enable = yes\n"
-	MakeFile(HomeDirectory()+".asdfrc", asdfrcContents, 0644)
-
-	ASDFInstall("perl", "latest")
-	ASDFInstall("ruby", "latest")
-	ASDFInstall("python", "latest")
-	ASDFInstall("java", "openjdk-11.0.2")
-	ASDFInstall("java", "openjdk-17.0.2")
-	ASDFInstall("rust", "latest")
-	ASDFInstall("golang", "latest")
-	ASDFInstall("lua", "latest")
-	ASDFInstall("nodejs", "latest")
-	ASDFInstall("dart", "latest")
-	ASDFInstall("php", "latest")
-	ASDFInstall("groovy", "latest")
-	ASDFInstall("kotlin", "latest")
-	ASDFInstall("scala", "latest")
-	ASDFInstall("clojure", "latest")
-	ASDFInstall("erlang", "latest")
-	ASDFInstall("elixir", "latest")
-	ASDFInstall("gleam", "latest")
-	ASDFInstall("haskell", "latest")
-	ASDFReshim()
 
 	MacPMSInstallCask("iterm2", "iTerm")
 	MacPMSInstallCask("neovide", "Neovide")
@@ -679,9 +660,6 @@ func macDevelopment(adminCode string) {
 	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
 	ChangeMacApplicationIcon("IntelliJ IDEA", "IntelliJ IDEA.icns", adminCode)
 	ChangeMacApplicationIcon("Neovide", "Neovide.icns", adminCode)
-	MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
-	ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
-	MacPMSInstallCask("docker", "Docker")
 	MacPMSInstallCask("github", "Github")
 	MacPMSInstallCask("fork", "Fork")
 	MacPMSInstallCask("tableplus", "TablePlus")
@@ -742,6 +720,21 @@ func macSecurity(adminCode string) {
 	macLdBar.Stop()
 }
 
+func macVirtualMachines(adminCode string) {
+	MacPMSInstall("asdf")
+	MacPMSInstallCask("docker", "Docker")
+	StartMacApplication("Docker")
+	MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
+	ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
+
+	shrcAppend := "# ASDF VM\n" +
+		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
+	AppendFile(shrcPath, shrcAppend, 0644)
+
+	ASDFSet(MacASDFPath())
+	DockerSet(MacDockerPath())
+}
+
 func macEnd(userName, userEmail string) {
 	macLdBar.Suffix = " Finishing... "
 	macLdBar.Start()
@@ -753,7 +746,7 @@ func macEnd(userName, userEmail string) {
 	MacPMSCleanup()
 	MacPMSRemoveCache()
 
-	ConfigGit4sh(userName, userEmail)
+	Git4shSet(userName, userEmail)
 	ChangeMacWallpaper()
 
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
@@ -799,7 +792,7 @@ func CEIOS4macOS(adminCode string) bool {
 	osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName := MacInformation()
 	runLdBar.Suffix = " Checking internet connection... "
 	runLdBar.Start()
-	if CheckNetStatus() != true {
+	if CheckNetworkStatus() != true {
 		runLdBar.Stop()
 		ClearLine(1)
 		AlertLine("Network Connect Failed")
@@ -820,10 +813,10 @@ func CEIOS4macOS(adminCode string) bool {
 		fntBold + "   User " + fntReset + userFullName
 
 	if userFullName != userName {
-		var alertAnswer string
 		AlertLine("Warning!")
 		fmt.Println(errors.New(lstDot + "Your user username is different from the system."))
 		fmt.Print(" If you wish to continue type (Yes) then press return: ")
+		var alertAnswer string
 		_, errG4sOpt := fmt.Scanln(&alertAnswer)
 		if errG4sOpt != nil {
 			alertAnswer = "Enter"
@@ -852,6 +845,7 @@ func CEIOS4macOS(adminCode string) bool {
 	macCreativity(adminCode)
 	macDevelopment(adminCode)
 	macSecurity(adminCode)
+	macVirtualMachines(adminCode)
 	macEnd(userName, userEmail)
 
 	fmt.Println(" ------------------------------------------------------------")

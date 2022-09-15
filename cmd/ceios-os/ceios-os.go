@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"os/user"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -39,6 +40,7 @@ var (
 	fntCyan   = "\033[36m"
 	fntGrey   = "\033[37m"
 	runLdBar  = spinner.New(spinner.CharSets[11], 50*time.Millisecond)
+	insLdBar  = spinner.New(spinner.CharSets[14], 50*time.Millisecond)
 )
 
 func MessageError(handling, msg, code string) {
@@ -70,7 +72,7 @@ func CheckCmdError(err error, msg, pkg string) {
 	}
 }
 
-func CheckNetStatus() bool {
+func CheckNetworkStatus() bool {
 	getTimeout := 10000 * time.Millisecond
 	client := http.Client{
 		Timeout: getTimeout,
@@ -369,32 +371,153 @@ func DownloadFile(filePath, urlPath string, fileMode int) {
 	MakeFile(filePath, NetHTTP(urlPath), fileMode)
 }
 
-func ASDFReshim() {
-	reshim := exec.Command(macASDF, "reshim")
+func ASDFReshim(asdfPath string) {
+	reshim := exec.Command(asdfPath, "reshim")
 	err := reshim.Run()
 	CheckCmdError(err, "ASDF failed to", "reshim")
 }
 
-func ASDFInstall(plugin, version string) {
-	if CheckExists(HomeDirectory()+".asdf/plugins/"+plugin) != true {
-		asdfPlugin := exec.Command(macASDF, "plugin", "add", plugin)
-		err := asdfPlugin.Run()
-		CheckCmdError(err, "ASDF-VM failed to add", plugin)
+func ASDFInstall(asdfPath, asdfPlugin, asdfVersion string) {
+	if CheckExists(HomeDirectory()+".asdf/plugins/"+asdfPlugin) != true {
+		asdfPluginAdd := exec.Command(asdfPath, "plugin", "add", asdfPlugin)
+		err := asdfPluginAdd.Run()
+		CheckCmdError(err, "ASDF-VM failed to add", asdfPlugin)
 	}
 
-	ASDFReshim()
-	asdfIns := exec.Command(macASDF, optIns, plugin, version)
+	ASDFReshim(asdfPath)
+	asdfIns := exec.Command(asdfPath, optIns, asdfPlugin, asdfVersion)
 	asdfIns.Env = os.Environ()
 	errIns := asdfIns.Run()
-	CheckCmdError(errIns, "ASDF-VM", plugin)
+	CheckCmdError(errIns, "ASDF-VM", asdfPlugin)
 
-	asdfGlobal := exec.Command(macASDF, "global", plugin, version)
+	asdfGlobal := exec.Command(asdfPath, "global", asdfPlugin, asdfVersion)
 	asdfGlobal.Env = os.Environ()
 	errConf := asdfGlobal.Run()
-	CheckCmdError(errConf, "ASDF-VM failed to install", plugin)
+	CheckCmdError(errConf, "ASDF-VM failed to install", asdfPlugin)
 }
 
-func ConfigAlias4sh() {
+func ASDFSet(asdfPath string) {
+	asdfrcContents := "#              _____ _____  ______  __      ____  __ \n" +
+		"#       /\\    / ____|  __ \\|  ____| \\ \\    / /  \\/  |\n" +
+		"#      /  \\  | (___ | |  | | |__ ____\\ \\  / /| \\  / |\n" +
+		"#     / /\\ \\  \\___ \\| |  | |  __|_____\\ \\/ / | |\\/| |\n" +
+		"#    / ____ \\ ____) | |__| | |         \\  /  | |  | |\n" +
+		"#   /_/    \\_\\_____/|_____/|_|          \\/   |_|  |_|\n#\n" +
+		"#  " + CurrentUsername() + "’s ASDF-VM run commands\n\n" +
+		"legacy_version_file = yes\n" +
+		"use_release_candidates = no\n" +
+		"always_keep_download = no\n" +
+		"plugin_repository_last_check_duration = 0\n" +
+		"disable_plugin_short_name_repository = no\n" +
+		"java_macos_integration_enable = yes\n"
+	MakeFile(HomeDirectory()+".asdfrc", asdfrcContents, 0644)
+
+	ASDFInstall(asdfPath, "perl", "latest")
+	ASDFInstall(asdfPath, "ruby", "latest")
+	ASDFInstall(asdfPath, "python", "latest")
+	ASDFInstall(asdfPath, "java", "openjdk-11.0.2")
+	ASDFInstall(asdfPath, "java", "openjdk-17.0.2")
+	ASDFInstall(asdfPath, "rust", "latest")
+	ASDFInstall(asdfPath, "golang", "latest")
+	ASDFInstall(asdfPath, "lua", "latest")
+	ASDFInstall(asdfPath, "nodejs", "latest")
+	ASDFInstall(asdfPath, "dart", "latest")
+	ASDFInstall(asdfPath, "php", "latest")
+	ASDFInstall(asdfPath, "groovy", "latest")
+	ASDFInstall(asdfPath, "kotlin", "latest")
+	ASDFInstall(asdfPath, "scala", "latest")
+	ASDFInstall(asdfPath, "clojure", "latest")
+	ASDFInstall(asdfPath, "erlang", "latest")
+	ASDFInstall(asdfPath, "elixir", "latest")
+	ASDFInstall(asdfPath, "gleam", "latest")
+	ASDFInstall(asdfPath, "haskell", "latest")
+	ASDFReshim(asdfPath)
+}
+
+func DockerInstall(dockerPath, dockerImage string) {
+	insLdBar.Suffix = " Docker is downloading " + dockerImage + " image ... "
+	insLdBar.Start()
+	startDocker := exec.Command(dockerPath, "pull", dockerImage)
+	err := startDocker.Run()
+	CheckCmdError(err, "Docker failed to pull", dockerImage)
+	insLdBar.Stop()
+}
+
+func DockerError() bool {
+	runLdBar.Stop()
+	AlertLine("Stopped Installation Docker Images")
+	fmt.Println(errors.New(lstDot + "Docker is not running, please start Docker and try again"))
+	fmt.Print(" If you wish to exit type (Exit) then press return: ")
+	var alertAnswer string
+	_, errG4sOpt := fmt.Scanln(&alertAnswer)
+	if errG4sOpt != nil {
+		alertAnswer = "Enter"
+	}
+	if alertAnswer == "Exit" {
+		ClearLine(3)
+		AlertLine("Not Installed Docker Images")
+		fmt.Println(errors.New(lstDot + "Please install Docker images manually."))
+		return false
+	}
+	ClearLine(3)
+	return true
+}
+
+func DockerSet(dockerPath string) bool {
+dockerStatus:
+	runLdBar.Suffix = " Checking Docker status, please wait a moment ... "
+	runLdBar.Start()
+
+	if CheckExists(dockerPath) != true {
+		if DockerError() != true {
+			return false
+		}
+		goto dockerStatus
+	}
+
+	if CheckOperatingSystem() == "darwin" {
+		macPs := exec.Command("ps", "x")
+		macPsList, err := macPs.Output()
+		CheckError(err, "Failed to get processor information")
+		if strings.Contains(string(macPsList), "Docker.app") != true {
+			if DockerError() != true {
+				return false
+			}
+			goto dockerStatus
+		}
+	}
+
+	dockerImageLs := exec.Command(dockerPath, "images")
+	if err := dockerImageLs.Run(); err != nil {
+		time.Sleep(time.Second * 1)
+		goto dockerStatus
+	}
+	runLdBar.Stop()
+
+	DockerInstall(dockerPath, "httpd")
+	DockerInstall(dockerPath, "nginx")
+	DockerInstall(dockerPath, "tomcat")
+	DockerInstall(dockerPath, "redis")
+	DockerInstall(dockerPath, "mysql")
+	DockerInstall(dockerPath, "mariadb")
+	DockerInstall(dockerPath, "postgres")
+	if osType == "darwin" {
+		DockerInstall(dockerPath, "docker")
+		DockerInstall(dockerPath, "alpine")
+		DockerInstall(dockerPath, "debian")
+		DockerInstall(dockerPath, "ubuntu")
+		DockerInstall(dockerPath, "centos")
+		DockerInstall(dockerPath, "fedora")
+		DockerInstall(dockerPath, "archlinux")
+		DockerInstall(dockerPath, "kalilinux/kali-rolling")
+		DockerInstall(dockerPath, "wordpress")
+		DockerInstall(dockerPath, "drupal")
+		DockerInstall(dockerPath, "ghost")
+	}
+	return true
+}
+
+func Alias4shSet() {
 	a4sPath := HomeDirectory() + ".config/alias4sh"
 	MakeDirectory(a4sPath)
 	MakeFile(a4sPath+"/alias4.sh", "# ALIAS4SH", 0644)
@@ -411,7 +534,7 @@ func ConfigAlias4sh() {
 	RemoveFile(dlA4sPath)
 }
 
-func ConfigGit4sh(gitUserName, gitUserEmail string) {
+func Git4shSet(gitUserName, gitUserEmail string) {
 	setGitUserName := exec.Command(macGit, "config", "--global", "user.name", gitUserName)
 	errGitUserName := setGitUserName.Run()
 	CheckError(errGitUserName, "Failed to set git user name")

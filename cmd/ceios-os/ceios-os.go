@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
@@ -434,6 +435,25 @@ func ASDFSet(asdfPath string) {
 	ASDFReshim(asdfPath)
 }
 
+func DockerStatus(dockerPath string) int {
+	if CheckExists(dockerPath) != true {
+		return 1
+	}
+
+	dockerSts := exec.Command(MacDockerPath(), "version")
+	var dockerErr bytes.Buffer
+	dockerSts.Stderr = &dockerErr
+	if err := dockerSts.Run(); err != nil {
+		errStr := dockerErr.String()
+		if strings.Contains(errStr, "Cannot connect to the Docker daemon") == true {
+			return 1
+		} else if strings.Contains(errStr, "Error response from daemon: dial unix docker.raw.sock: connect: no such file or director") == true {
+			return 2
+		}
+	}
+	return 0
+}
+
 func DockerInstall(dockerPath, dockerImage string) {
 	insLdBar.Suffix = " Docker is downloading " + dockerImage + " image ... "
 	insLdBar.Start()
@@ -443,57 +463,43 @@ func DockerInstall(dockerPath, dockerImage string) {
 	insLdBar.Stop()
 }
 
-func DockerError() bool {
-	runLdBar.Stop()
-	AlertLine("Stopped Installation Docker Images")
-	fmt.Println(errors.New(lstDot + "Docker is not running, please start Docker and try again"))
-	fmt.Print(" If you wish to exit type (Exit) then press return: ")
-	var alertAnswer string
-	_, errG4sOpt := fmt.Scanln(&alertAnswer)
-	if errG4sOpt != nil {
-		alertAnswer = "Enter"
-	}
-	if alertAnswer == "Exit" {
-		ClearLine(3)
-		AlertLine("Not Installed Docker Images")
-		fmt.Println(errors.New(lstDot + "Please install Docker images manually."))
-		return false
-	}
-	ClearLine(3)
-	return true
-}
-
 func DockerSet(dockerPath string) bool {
 dockerStatus:
 	runLdBar.Suffix = " Checking Docker status, please wait a moment ... "
 	runLdBar.Start()
 
-	if CheckExists(dockerPath) != true {
-		if DockerError() != true {
+	errSts := DockerStatus(dockerPath)
+	runLdBar.Stop()
+	if errSts != 0 {
+
+		AlertLine("Stopped Installation Docker Images")
+
+		if errSts == 1 {
+			fmt.Println(errors.New(lstDot + "Docker isn't initially started, please start Docker and try again."))
+		} else if errSts == 2 {
+			fmt.Println(errors.New(lstDot + "Docker isn't running, please start Docker and try again"))
+		} else if errSts == 3 {
+			fmt.Println(errors.New(lstDot + "Docker is preparing, please wait a moment and try again."))
+		}
+
+		fmt.Print(" If you wish to skip type (Skip) press return, else retry: ")
+		var alertAnswer string
+		_, errG4sOpt := fmt.Scanln(&alertAnswer)
+		if errG4sOpt != nil {
+			alertAnswer = "Enter"
+		}
+		if alertAnswer == "Skip" {
+			ClearLine(3)
+			AlertLine("Not Installed Docker Images")
+			fmt.Println(errors.New(lstDot + "Please install Docker images manually."))
 			return false
 		}
+		ClearLine(3)
 		goto dockerStatus
 	}
 
-	if CheckOperatingSystem() == "darwin" {
-		macPs := exec.Command("ps", "x")
-		macPsList, err := macPs.Output()
-		CheckError(err, "Failed to get processor information")
-		if strings.Contains(string(macPsList), "Docker.app") != true {
-			if DockerError() != true {
-				return false
-			}
-			goto dockerStatus
-		}
-	}
-
-	dockerImageLs := exec.Command(dockerPath, "images")
-	if err := dockerImageLs.Run(); err != nil {
-		time.Sleep(time.Second * 1)
-		goto dockerStatus
-	}
-	runLdBar.Stop()
-
+	DockerInstall(dockerPath, "alpine")
+	DockerInstall(dockerPath, "ubuntu")
 	DockerInstall(dockerPath, "httpd")
 	DockerInstall(dockerPath, "nginx")
 	DockerInstall(dockerPath, "tomcat")
@@ -503,7 +509,6 @@ dockerStatus:
 	DockerInstall(dockerPath, "postgres")
 	if osType == "darwin" {
 		DockerInstall(dockerPath, "docker")
-		DockerInstall(dockerPath, "alpine")
 		DockerInstall(dockerPath, "debian")
 		DockerInstall(dockerPath, "ubuntu")
 		DockerInstall(dockerPath, "centos")

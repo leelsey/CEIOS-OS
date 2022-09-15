@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -30,7 +31,6 @@ var (
 	optReIn  = "reinstall"
 	//optUnIn  = "uninstall"
 	//optRm    = "remove"
-	tryLoop   = 0
 	fntReset  = "\033[0m"
 	fntBold   = "\033[1m"
 	fntRed    = "\033[31m"
@@ -73,26 +73,6 @@ func CheckCmdError(err error, msg, pkg string) {
 	}
 }
 
-func CheckNetworkStatus() bool {
-	getTimeout := 10000 * time.Millisecond
-	client := http.Client{
-		Timeout: getTimeout,
-	}
-	_, err := client.Get("https://9.9.9.9")
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-func CheckExists(path string) bool {
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		return true
-	} else {
-		return false
-	}
-}
-
 func CheckArchitecture() string {
 	switch runtime.GOARCH {
 	case "arm64":
@@ -115,7 +95,88 @@ func CheckOperatingSystem() string {
 	}
 }
 
+func CheckExists(path string) bool {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func CheckNetworkStatus() bool {
+	runLdBar.Suffix = " Checking internet connection... "
+	runLdBar.Start()
+
+	getTimeout := 10000 * time.Millisecond
+	client := http.Client{
+		Timeout: getTimeout,
+	}
+	_, err := client.Get("https://9.9.9.9")
+	if err != nil {
+		runLdBar.Stop()
+		return false
+	}
+
+	runLdBar.Stop()
+	return true
+}
+
+func CheckUserInformation() (string, string, string, string, bool) {
+	var (
+		userName  string
+		usrName   string
+		userEmail string
+		usrEmail  string
+	)
+
+	consoleReader := bufio.NewScanner(os.Stdin)
+	fmt.Print(" User name: ")
+	consoleReader.Scan()
+	userName = consoleReader.Text()
+
+	if userName == "" {
+		usrName = "Unknown User"
+	} else {
+		usrName = userName
+	}
+
+	var tryLoop = 0
+	for tryLoop < 3 {
+		tryLoop++
+		fmt.Print(" User email: ")
+		consoleReader.Scan()
+		userEmail = consoleReader.Text()
+		if userEmail == "" {
+			usrEmail = "No Email Address"
+			break
+		} else {
+			if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
+				len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
+				len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
+				usrEmail = userEmail
+				break
+			} else {
+				ClearLine(1)
+				AlertLine("Sorry, try again")
+				if tryLoop >= 3 {
+					fmt.Println(errors.New(lstDot + "3 incorrect email format attempts."))
+					return "", "", "", "", false
+				} else {
+					fmt.Println(errors.New(lstDot + "Invalid email address format."))
+				}
+			}
+		}
+	}
+	if tryLoop == 1 {
+		ClearLine(3)
+	} else {
+		ClearLine(tryLoop * 2)
+	}
+	return userName, usrName, userEmail, usrEmail, true
+}
+
 func CheckPassword() (string, bool) {
+	var tryLoop = 0
 	for tryLoop < 3 {
 		fmt.Print(" Password:")
 		bytePw, _ := term.ReadPassword(0)
@@ -136,16 +197,16 @@ func CheckPassword() (string, bool) {
 		if errSudo != nil {
 			runLdBar.FinalMSG = fntRed + " Password check failed" + fntReset + "\n"
 			runLdBar.Stop()
-			if tryLoop < 3 {
-				fmt.Println(errors.New(lstDot + "Sorry, try again."))
-			} else if tryLoop >= 3 {
+			if tryLoop >= 3 {
 				fmt.Println(errors.New(lstDot + "3 incorrect password attempts."))
+			} else {
+				fmt.Println(errors.New(lstDot + "Sorry, try again."))
 			}
 		} else {
 			runLdBar.FinalMSG = ""
 			runLdBar.Stop()
 			if tryLoop == 1 {
-				ClearLine(tryLoop)
+				ClearLine(tryLoop - 1)
 			} else {
 				ClearLine(tryLoop*2 - 1)
 			}
@@ -472,7 +533,7 @@ dockerStatus:
 	runLdBar.Stop()
 	if errSts != 0 {
 
-		AlertLine("Stopped Installation Docker Images")
+		AlertLine("Stopped installation Docker images")
 
 		if errSts == 1 {
 			fmt.Println(errors.New(lstDot + "Docker isn't initially started, please start Docker and try again."))
@@ -490,8 +551,8 @@ dockerStatus:
 		}
 		if alertAnswer == "Skip" {
 			ClearLine(3)
-			AlertLine("Not Installed Docker Images")
-			fmt.Println(errors.New(lstDot + "Please install Docker images manually."))
+			AlertLine("Skipped Download Docker Images")
+			fmt.Println(errors.New(lstDot + "Please manually pull Docker images."))
 			return false
 		}
 		ClearLine(3)
@@ -594,7 +655,8 @@ func main() {
 	}
 
 	TitleLine("Need Permission")
-	if adminCode, adminStatus := CheckPassword(); adminStatus == true {
+	if adminCode, adminSts := CheckPassword(); adminSts == true {
+		ClearLine(1)
 		NeedPermission(adminCode)
 		if osType == "darwin" {
 			if CEIOS4macOS(adminCode) != true {
@@ -605,8 +667,8 @@ func main() {
 			//	goto exitPoint
 			//}
 		} else {
-			AlertLine("OS Problem")
-			fmt.Println(errors.New(lstDot + "Unsupported Operating System" + fntReset))
+			AlertLine("Operating System Problem")
+			fmt.Println(errors.New(lstDot + "Unsupported operating system" + fntReset))
 			goto exitPoint
 		}
 		RebootOS(adminCode)

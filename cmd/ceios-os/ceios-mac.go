@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
@@ -73,17 +72,17 @@ func MacOSUpdate() {
 }
 
 func MacSoftware() string {
-	macSoft := exec.Command("system_profiler", "SPSoftwareDataType")
-	softInfo, err := macSoft.Output()
+	softInfo, err := exec.Command("system_profiler", "SPSoftwareDataType").Output()
+	//softInfo, err := macSoft.Output()
 	CheckError(err, "Failed to get macOS hardware information")
 	return string(softInfo)
 }
 
 func MacHardware() string {
-	macHard := exec.Command("system_profiler", "SPHardwareDataType")
-	hardInfo, err := macHard.Output()
+	macInfo, err := exec.Command("system_profiler", "SPHardwareDataType").Output()
+	//hardInfo, err := macHard.Output()
 	CheckError(err, "Failed to get macOS hardware information")
-	return string(hardInfo)
+	return string(macInfo)
 }
 
 func MacInformation() (string, string, string, string, string, string, string) {
@@ -754,107 +753,74 @@ func macEnd(userName, userEmail string) {
 }
 
 func CEIOS4macOS(adminCode string) bool {
-	var (
-		chipArch string
-		usrName  string
-		usrEmail string
-	)
-
 	TitleLine("User Information")
-	consoleReader := bufio.NewScanner(os.Stdin)
-	fmt.Print("User name: ")
-	consoleReader.Scan()
-	userName := consoleReader.Text()
-	if userName == "" {
-		usrName = "Unknown User"
-	} else {
-		usrName = userName
-	}
-	fmt.Print("User email: ")
-	consoleReader.Scan()
-	userEmail := consoleReader.Text()
-	if userEmail == "" {
-		usrEmail = "No Email Address"
-	} else {
-		if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
-			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
-			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
-			usrEmail = userEmail
-		} else {
-			ClearLine(2)
-			fmt.Println(errors.New(lstDot + "Invalid email address format."))
+	if userName, usrName, userEmail, usrEmail, userSts := CheckUserInformation(); userSts == true {
+		TitleLine("Check Computer Status")
+		if CheckNetworkStatus() != true {
+			AlertLine("Network connect failed")
+			fmt.Println(errors.New(lstDot + "Please check your internet connection."))
 			return false
 		}
-	}
-	ClearLine(3)
-
-	TitleLine("Check Computer Status")
-	osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName := MacInformation()
-	runLdBar.Suffix = " Checking internet connection... "
-	runLdBar.Start()
-	if CheckNetworkStatus() != true {
-		runLdBar.Stop()
+		osName, osVer, modelInfo, chipInfo, memoryInfo, deviceName, userFullName := MacInformation()
 		ClearLine(1)
-		AlertLine("Network Connect Failed")
-		fmt.Println(errors.New(lstDot + "Please check your internet connection."))
+
+		var chipArch string
+		if archType == "arm64" {
+			chipArch = "   Chip "
+		} else if archType == "amd64" {
+			chipArch = "   Processor "
+		}
+		macInfo := fntBold + " " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
+			fntBold + " " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
+			fntBold + "   Memory " + fntReset + memoryInfo + "\n" + fntBold + "   Device " + fntReset + deviceName + "\n" +
+			fntBold + "   User " + fntReset + userFullName
+
+		if userFullName != userName {
+			AlertLine("Warning!")
+			fmt.Println(errors.New(lstDot + "Your user username is different from the system."))
+			fmt.Print(" If you wish to continue type (Yes) then press return: ")
+			var alertAnswer string
+			_, errG4sOpt := fmt.Scanln(&alertAnswer)
+			if errG4sOpt != nil {
+				alertAnswer = "Enter"
+			}
+			if alertAnswer == "Yes" {
+				ClearLine(3)
+				TitleLine("System Information")
+				fmt.Println(macInfo + " (" + usrName + " - " + usrEmail + ")")
+			} else {
+				ClearLine(1)
+				fmt.Println(errors.New(lstDot + "Installation canceled by user."))
+				return false
+			}
+		} else {
+			TitleLine("System Information")
+			fmt.Println(macInfo + " (" + usrEmail + ")")
+		}
+
+		time.Sleep(time.Millisecond * 300)
+		TitleLine("CEIOS OS Installation")
+		macBegin(adminCode)
+		macEnv()
+		macDependency(adminCode)
+		macUtility(adminCode)
+		macProductivity(adminCode)
+		macCreativity(adminCode)
+		macDevelopment(adminCode)
+		macSecurity(adminCode)
+		macVirtualMachines(adminCode)
+		macEnd(userName, userEmail)
+
+		fmt.Println(" ------------------------------------------------------------")
+		TitleLine("Finished CEIOS OS Installation")
+		fmt.Println(" Please" + fntBold + fntRed + " RESTART " + fntReset + "your " + fntPurple + "Terminal and macOS!\n" +
+			fntReset + lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
+			lstDot + "Or restart the Terminal application by yourself.\n" +
+			lstDot + "Also you need restart macOS to apply the changes.")
+		TitleLine("System Update and Restart OS")
+		MacOSUpdate()
+	} else {
 		return false
 	}
-	runLdBar.Stop()
-	ClearLine(1)
-
-	if archType == "arm64" {
-		chipArch = "   Chip "
-	} else if archType == "amd64" {
-		chipArch = "   Processor "
-	}
-	macInfo := fntBold + " " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
-		fntBold + " " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
-		fntBold + "   Memory " + fntReset + memoryInfo + "\n" + fntBold + "   Device " + fntReset + deviceName + "\n" +
-		fntBold + "   User " + fntReset + userFullName
-
-	if userFullName != userName {
-		AlertLine("Warning!")
-		fmt.Println(errors.New(lstDot + "Your user username is different from the system."))
-		fmt.Print(" If you wish to continue type (Yes) then press return: ")
-		var alertAnswer string
-		_, errG4sOpt := fmt.Scanln(&alertAnswer)
-		if errG4sOpt != nil {
-			alertAnswer = "Enter"
-		}
-		if alertAnswer == "Yes" {
-			ClearLine(3)
-			TitleLine("System Information")
-			fmt.Println(macInfo + " (" + usrName + " - " + usrEmail + ")")
-		} else {
-			ClearLine(1)
-			fmt.Println(errors.New(lstDot + "Installation canceled by user."))
-			return false
-		}
-	} else {
-		TitleLine("System Information")
-		fmt.Println(macInfo + " (" + usrEmail + ")")
-	}
-
-	time.Sleep(time.Millisecond * 300)
-	TitleLine("CEIOS OS Installation")
-	macBegin(adminCode)
-	macEnv()
-	macDependency(adminCode)
-	macUtility(adminCode)
-	macProductivity(adminCode)
-	macCreativity(adminCode)
-	macDevelopment(adminCode)
-	macSecurity(adminCode)
-	macVirtualMachines(adminCode)
-	macEnd(userName, userEmail)
-
-	fmt.Println(" ------------------------------------------------------------")
-	TitleLine("Finished CEIOS OS Installation")
-	fmt.Println(" Please" + fntBold + fntRed + " RESTART " + fntReset + "your " + fntPurple + "Terminal and macOS!\n" +
-		fntReset + lstDot + "Use \"exec -l $SHELL\" or on terminal.\n" +
-		lstDot + "Or restart the Terminal application by yourself.\n" +
-		lstDot + "Also you need restart macOS to apply the changes.")
-	TitleLine("System Update and Restart OS")
-	MacOSUpdate()
 	return true
 }

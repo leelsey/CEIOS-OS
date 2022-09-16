@@ -507,7 +507,7 @@ func DockerStatus(dockerPath string) int {
 	dockerSts.Stderr = &dockerErr
 	if err := dockerSts.Run(); err != nil {
 		errStr := dockerErr.String()
-		if strings.Contains(errStr, "Cannot connect to the Docker daemon") == true {
+		if strings.Contains(errStr, "Cannot connect to the docker daemon") == true {
 			return 1
 		} else if strings.Contains(errStr, "Error response from daemon: dial unix docker.raw.sock: connect: no such file or director") == true {
 			return 2
@@ -537,9 +537,9 @@ dockerStatus:
 		AlertLine("Stopped installation Docker images")
 
 		if errSts == 1 {
-			fmt.Println(errors.New(lstDot + "Docker isn't initially started, please start Docker and try again."))
+			fmt.Println(errors.New(lstDot + "Docker isn't initially started, please start docker and try again."))
 		} else if errSts == 2 {
-			fmt.Println(errors.New(lstDot + "Docker isn't running, please start Docker and try again"))
+			fmt.Println(errors.New(lstDot + "Docker isn't running, please start docker and try again"))
 		} else if errSts == 3 {
 			fmt.Println(errors.New(lstDot + "Docker is preparing, please wait a moment and try again."))
 		}
@@ -552,8 +552,8 @@ dockerStatus:
 		}
 		if alertAnswer == "Skip" {
 			ClearLine(3)
-			AlertLine("Skipped Download Docker Images")
-			fmt.Println(errors.New(lstDot + "Please manually pull Docker images."))
+			AlertLine("Skipped Download docker Images")
+			fmt.Println(errors.New(lstDot + "Please manually pull docker images."))
 			return false
 		}
 		ClearLine(3)
@@ -645,13 +645,13 @@ func main() {
 
 	if CurrentUsername() == "root" {
 		AlertLine("Security Problem")
-		fmt.Println(errors.New(lstDot + "Don't run this as ROOT user"))
+		fmt.Println(errors.New(lstDot + "Don't run this as root user"))
 		return
 	}
 
 	if archType != "arm64" && archType != "amd64" {
 		AlertLine("Architecture Problem")
-		fmt.Println(errors.New(lstDot + "This OS only supports ARM64 and AMD64"))
+		fmt.Println(errors.New(lstDot + "This OS only supports arm64 and amd64"))
 		return
 	}
 

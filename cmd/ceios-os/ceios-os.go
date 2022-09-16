@@ -149,28 +149,27 @@ func CheckUserInformation() (string, string, string, string, bool) {
 		if userEmail == "" {
 			usrEmail = "No Email Address"
 			break
+		} else if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
+			strings.Count(userEmail, ".") > 0 && len(strings.Split(userEmail, "@")[0]) > 0 &&
+			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
+			len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
+			usrEmail = userEmail
+			break
 		} else {
-			if strings.Count(userEmail, "@") == 1 && len(strings.Split(userEmail, "@")[0]) > 0 &&
-				len(strings.Split(strings.Split(userEmail, "@")[1], ".")[0]) > 1 &&
-				len(strings.Split(strings.Split(userEmail, "@")[1], ".")[1]) > 1 {
-				usrEmail = userEmail
-				break
+			ClearLine(1)
+			AlertLine("Sorry, try again")
+			if tryLoop >= 3 {
+				fmt.Println(errors.New(lstDot + "3 incorrect email format attempts."))
+				return "", "", "", "", false
 			} else {
-				ClearLine(1)
-				AlertLine("Sorry, try again")
-				if tryLoop >= 3 {
-					fmt.Println(errors.New(lstDot + "3 incorrect email format attempts."))
-					return "", "", "", "", false
-				} else {
-					fmt.Println(errors.New(lstDot + "Invalid email address format."))
-				}
+				fmt.Println(errors.New(lstDot + "Invalid email address format."))
 			}
 		}
 	}
 	if tryLoop == 1 {
 		ClearLine(3)
 	} else {
-		ClearLine(tryLoop * 2)
+		ClearLine(tryLoop*2 + 1)
 	}
 	return userName, usrName, userEmail, usrEmail, true
 }
@@ -208,7 +207,7 @@ func CheckPassword() (string, bool) {
 			if tryLoop == 1 {
 				ClearLine(tryLoop - 1)
 			} else {
-				ClearLine(tryLoop*2 - 1)
+				ClearLine(tryLoop*2 - 2)
 			}
 			return strPw, true
 		}
@@ -645,13 +644,13 @@ func main() {
 	if CurrentUsername() == "root" {
 		AlertLine("Security Problem")
 		fmt.Println(errors.New(lstDot + "Don't run this as ROOT user"))
-		goto exitPoint
+		return
 	}
 
 	if archType != "arm64" && archType != "amd64" {
 		AlertLine("Architecture Problem")
 		fmt.Println(errors.New(lstDot + "This OS only supports ARM64 and AMD64"))
-		goto exitPoint
+		return
 	}
 
 	TitleLine("Need Permission")
@@ -660,7 +659,7 @@ func main() {
 		NeedPermission(adminCode)
 		if osType == "darwin" {
 			if CEIOS4macOS(adminCode) != true {
-				goto exitPoint
+				return
 			}
 		} else if osType == "linux" {
 			//if CEIOS4Kali(adminCode) != true {
@@ -669,13 +668,11 @@ func main() {
 		} else {
 			AlertLine("Operating System Problem")
 			fmt.Println(errors.New(lstDot + "Unsupported operating system" + fntReset))
-			goto exitPoint
+			return
 		}
 		RebootOS(adminCode)
 	} else {
-		goto exitPoint
+		return
 	}
-
-exitPoint:
 	return
 }

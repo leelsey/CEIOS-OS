@@ -378,21 +378,20 @@ func macEnv() {
 	}
 
 	picturesPath := HomeDirectory() + "Pictures/"
-	DownloadFile(picturesPath+"Cube Glass Light and Dark.heic", CfgSto+"wallpaper/Cube Glass.heic", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Orb Glass.heic", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Oval Wave.heic", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Silk Wave.heic", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Stone Wave.heic", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Blue Wave.jpg", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Perple Wave.jpg", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Perple Wave.jpg", 0644)
-	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Rain Glass.jpg", 0644)
+	DownloadFile(picturesPath+"Cube Glass.heic", CfgSto+"wallpaper/Cube Glass.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass.heic", CfgSto+"wallpaper/Orb Glass.heic", 0644)
+	DownloadFile(picturesPath+"Oval Wave.heic", CfgSto+"wallpaper/Oval Wave.heic", 0644)
+	DownloadFile(picturesPath+"Silk Wave.heic", CfgSto+"wallpaper/Silk Wave.heic", 0644)
+	DownloadFile(picturesPath+"Stone Wave.heic", CfgSto+"wallpaper/Stone Wave.heic", 0644)
+	DownloadFile(picturesPath+"Blue Wave.heic", CfgSto+"wallpaper/Blue Wave.jpg", 0644)
+	DownloadFile(picturesPath+"Purple Wave.heic", CfgSto+"wallpaper/Purple Wave.jpg", 0644)
+	DownloadFile(picturesPath+"Rain Wave.heic", CfgSto+"wallpaper/Rain Glass.jpg", 0644)
 	//DownloadFile(picturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)
 	//DownloadFile(picturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)
 	//DownloadFile(picturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
 	//DownloadFile(picturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup environment!\n"
 	macLdBar.Stop()
 }
 
@@ -582,7 +581,7 @@ func macUtility(adminCode string) {
 	MacPMSInstallCask("transmission", "Transmission")
 	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install utility applications!\n"
 	macLdBar.Stop()
 }
 
@@ -603,7 +602,7 @@ func macProductivity(adminCode string) {
 	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
 	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install productivity applications!\n"
 	macLdBar.Stop()
 }
 
@@ -633,7 +632,7 @@ func macCreativity(adminCode string) {
 	StartMacApplication("Loopback")
 	MacPMSInstallCask("obs", "OBS")
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install creativity applications!\n"
 	macLdBar.Stop()
 }
 
@@ -686,7 +685,7 @@ func macDevelopment(adminCode string) {
 	MacPMSInstallCask("staruml", "StarUML")
 	ChangeMacApplicationIcon("StarUML", "StarUML.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install development applications!\n"
 	macLdBar.Stop()
 }
 
@@ -728,7 +727,7 @@ func macSecurity(adminCode string) {
 	MacPMSInstallCaskSudo("zenmap", "Zenmap", "/Applications/Zenmap.app", adminCode)
 	ChangeMacApplicationIcon("Zenmap", "Zenmap.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install CLI applications!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install security applications!\n"
 	macLdBar.Stop()
 }
 
@@ -766,10 +765,10 @@ func macEnd(userName, userEmail string) {
 	if ChangeMacWallpaper(HomeDirectory()+"Pictures/Orb Glass Dynamic.heic") != true {
 		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
 		macLdBar.Stop()
-		fmt.Println(fntBold + fntRed + "   Failed " + fntReset + "change desktop wallpaper and cofigure git!")
+		fmt.Println(fntBold + fntRed + "   Failed " + fntReset + "change desktop wallpaper and configure git!")
 	}
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up cache, config git and wallpaper!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up cache, configure git and wallpaper!"
 	macLdBar.Stop()
 }
 

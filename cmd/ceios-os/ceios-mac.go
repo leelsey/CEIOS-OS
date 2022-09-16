@@ -125,12 +125,20 @@ func MacInformation() (string, string, string, string, string, string, string) {
 }
 
 func StartMacApplication(appName string) {
+	insLdBar.Suffix = " macOS is running " + appName + " ... "
+	insLdBar.Start()
+
 	runApp := exec.Command("open", "/Applications/"+appName+".app")
 	err := runApp.Run()
 	CheckCmdError(err, "Failed to start", appName)
+
+	insLdBar.Stop()
 }
 
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
+	insLdBar.Suffix = " macOS is changing application icon ... "
+	insLdBar.Start()
+
 	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
 	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
 
@@ -156,10 +164,14 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	RemoveFile(srcIcn)
 	RemoveFile(cvtIcn)
 	RemoveFile(chicnPath)
+
+	insLdBar.Stop()
 }
 
 func ChangeMacWallpaper(srcWp string) bool {
-	//srcWp := HomeDirectory() + "Pictures/" + wpPath
+	insLdBar.Suffix = " macOS is configuring desktop wallpaper ... "
+	insLdBar.Start()
+
 	chWpPath := WorkingDirectory() + ".ceios-chwap.sh"
 	chWpSrc := "osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"" + srcWp + "\"'"
 	MakeFile(chWpPath, chWpSrc, 0644)
@@ -167,9 +179,11 @@ func ChangeMacWallpaper(srcWp string) bool {
 	chWp := exec.Command(cmdSh, chWpPath)
 	if err := chWp.Run(); err != nil {
 		RemoveFile(chWpPath)
+		insLdBar.Stop()
 		return false
 	}
 	RemoveFile(chWpPath)
+	insLdBar.Stop()
 	return true
 }
 
@@ -187,8 +201,8 @@ func MacPMSUpgrade() {
 }
 
 func MacPMSRepository(repo string) {
-	brewRepo := strings.Split(repo, "/")
-	repoPath := strings.Join(brewRepo[0:1], "") + "/homebrew-" + strings.Join(brewRepo[1:2], "")
+	brewRepoName := strings.Split(repo, "/")
+	repoPath := strings.Join(brewRepoName[0:1], "") + "/homebrew-" + strings.Join(brewRepoName[1:2], "")
 	if CheckExists(pmsPrefix+"Homebrew/Library/Taps/"+repoPath) != true {
 		brewRepo := exec.Command(macPMS, macRepo, repo)
 		err := brewRepo.Run()
@@ -209,6 +223,9 @@ func MacPMSRemoveCache() {
 }
 
 func MacPMSInstall(pkg string) {
+	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Start()
+
 	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
 		MacPMSUpdate()
 		brewIns := exec.Command(macPMS, optIns, pkg)
@@ -216,18 +233,28 @@ func MacPMSInstall(pkg string) {
 		err := brewIns.Run()
 		CheckCmdError(err, "Brew failed to install", pkg)
 	}
+
+	insLdBar.Stop()
 }
 
 func MacPMSInstallQuiet(pkg string) {
+	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Start()
+
 	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
 		MacPMSUpdate()
 		brewIns := exec.Command(macPMS, optIns, "--quiet", pkg)
 		err := brewIns.Run()
 		CheckCmdError(err, "Brew failed to install", pkg)
 	}
+
+	insLdBar.Stop()
 }
 
 func MacPMSInstallCask(pkg, appName string) {
+	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Start()
+
 	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
 		MacPMSUpdate()
 		if CheckExists("/Applications/"+appName+".app") != true {
@@ -240,9 +267,14 @@ func MacPMSInstallCask(pkg, appName string) {
 			CheckCmdError(err, "Brew failed to reinstall cask", pkg)
 		}
 	}
+
+	insLdBar.Stop()
 }
 
 func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
+	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Start()
+
 	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
 		MacPMSUpdate()
 		NeedPermission(adminCode)
@@ -256,22 +288,37 @@ func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
 			CheckCmdError(err, "Brew failed to install cask", appName)
 		}
 	}
+
+	insLdBar.Stop()
 }
 
 func MacJavaHome(srcVer, dstVer, adminCode string) {
+	insLdBar.Suffix = " Java is adding Java" + dstVer + " to jvm home ... "
+	insLdBar.Start()
+
 	if CheckExists(pmsPrefix+"Cellar/openjdk"+srcVer) == true {
 		LinkFile(pmsPrefix+"opt/openjdk"+srcVer+" /libexec/openjdk.jdk", "/Library/Java/JavaVirtualMachines/openjdk"+dstVer+".jdk", "symbolic", "root", adminCode)
 	}
+
+	insLdBar.Stop()
 }
 
 func MacInstallRosetta2() {
+	insLdBar.Suffix = " macOS is installing Rosetta2  ... "
+	insLdBar.Start()
+
 	osUpdate := exec.Command("softwareupdate", "--install-rosetta", "--agree-to-license")
 	if err := osUpdate.Run(); err != nil {
 		CheckCmdError(err, "Failed to install", "Rosetta 2")
 	}
+
+	insLdBar.Stop()
 }
 
 func MacInstallBrew(adminCode string) {
+	insLdBar.Suffix = " macOS is installing homebrew  ... "
+	insLdBar.Start()
+
 	insBrewPath := WorkingDirectory() + ".ceios-brew.sh"
 	DownloadFile(insBrewPath, ghRaw+"Homebrew/install/HEAD/install.sh", 0755)
 
@@ -287,9 +334,14 @@ func MacInstallBrew(adminCode string) {
 	if CheckExists(macPMS) == false {
 		MessageError("fatal", "Installed brew failed, please check your system", "Can't find homebrew")
 	}
+
+	insLdBar.Stop()
 }
 
 func MacInstallHopper(adminCode string) {
+	insLdBar.Suffix = " macOS is installing hopper disassembler ... "
+	insLdBar.Start()
+
 	hopperRSS := strings.Split(NetHTTP("https://www.hopperapp.com/rss/html_changelog.php"), " ")
 	hopperVer := strings.Join(hopperRSS[1:2], "")
 
@@ -316,32 +368,37 @@ func MacInstallHopper(adminCode string) {
 }
 
 func macBegin(adminCode string) {
+	var macBeginFinalMSG string
 	if CheckExists(macPMS) == true {
-		macLdBar.Suffix = " Updating homebrew... "
-		macLdBar.Start()
-		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "update homebrew!\n"
+		fmt.Println("- Update Homebrew")
+		macBeginFinalMSG = "update homebrew!\n"
 	} else {
-		macLdBar.Suffix = " Installing homebrew... "
-		macLdBar.Start()
-		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install and update homebrew!\n"
-
+		fmt.Println("- Install and Update Homebrew")
+		macBeginFinalMSG = "install and update homebrew!\n"
 		MacInstallBrew(adminCode)
 	}
+
+	insLdBar.Suffix = " Brew is updating ... "
+	insLdBar.Start()
+
 	err := os.Chmod(pmsPrefix+"share", 0755)
 	CheckError(err, "Failed to change permissions on "+pmsPrefix+"share to 755")
-
 	MacPMSUpdate()
 	MacPMSRepository("homebrew/core")
 	MacPMSRepository("homebrew/cask")
 	MacPMSRepository("homebrew/cask-versions")
+	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSUpgrade()
 
 	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + macBeginFinalMSG)
 }
 
 func macEnv() {
-	macLdBar.Suffix = " Setting system environment... "
-	macLdBar.Start()
+	fmt.Println("- Environment Configuration")
+	insLdBar.Suffix = " Initial setting zsh environment ... "
+	insLdBar.Start()
 
 	if CheckExists(prfPath) == true {
 		CopyFile(prfPath, HomeDirectory()+".zprofile.bck")
@@ -373,9 +430,14 @@ func macEnv() {
 	MakeDirectory(HomeDirectory() + ".config")
 	MakeDirectory(HomeDirectory() + ".cache")
 
+	insLdBar.Stop()
+
 	if CheckArchitecture() == "arm64" {
 		MacInstallRosetta2()
 	}
+
+	insLdBar.Suffix = " macOS is downloading desktop wallpaper ... "
+	insLdBar.Start()
 
 	picturesPath := HomeDirectory() + "Pictures/"
 	DownloadFile(picturesPath+"Cube Glass.heic", CfgSto+"wallpaper/Cube Glass.heic", 0644)
@@ -391,13 +453,13 @@ func macEnv() {
 	//DownloadFile(picturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
 	//DownloadFile(picturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup environment!\n"
-	macLdBar.Stop()
+	insLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup environment!")
 }
 
 func macDependency(adminCode string) {
-	macLdBar.Suffix = " Installing dependencies... "
-	macLdBar.Start()
+	fmt.Println("- Dependency Installation")
 
 	MacPMSInstall("pkg-config")
 	MacPMSInstall("readline")
@@ -466,13 +528,12 @@ func macDependency(adminCode string) {
 	MacPMSInstall("mysql")
 	MacPMSInstall("redis")
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install dependencies!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup dependencies!")
 }
 
 func macUtility(adminCode string) {
-	macLdBar.Suffix = " Installing - applications... "
-	macLdBar.Start()
+	fmt.Println("- Utility Installation")
 
 	Alias4shSet()
 	MacPMSInstall("bash")
@@ -510,9 +571,11 @@ func macUtility(adminCode string) {
 	MacPMSInstall("neofetch")
 	MacPMSInstall("asciinema")
 	MacPMSInstall("transmission-cli")
-
-	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSInstall("romkatv/powerlevel10k/powerlevel10k")
+
+	insLdBar.Suffix = " macOS is configuring zsh environment ... "
+	insLdBar.Start()
+
 	p10kConfPath := HomeDirectory() + ".config/p10k/"
 	p10kCachePath := HomeDirectory() + ".cache/p10k-" + CurrentUsername()
 	fontLibPath := HomeDirectory() + "Library/Fonts/"
@@ -572,6 +635,8 @@ func macUtility(adminCode string) {
 		"#vi () { $EDITOR \"$@\" }\n\n"
 	AppendFile(prfPath, profileAppend, 0644)
 
+	insLdBar.Stop()
+
 	MacPMSInstallCask("iina", "IINA")
 	MacPMSInstallCask("sensei", "Sensei")
 	MacPMSInstallCask("rectangle", "Rectangle")
@@ -581,13 +646,12 @@ func macUtility(adminCode string) {
 	MacPMSInstallCask("transmission", "Transmission")
 	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install utility applications!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup utilities!")
 }
 
 func macProductivity(adminCode string) {
-	macLdBar.Suffix = " Installing - applications... "
-	macLdBar.Start()
+	fmt.Println("- Productivity Installation")
 
 	MacPMSInstallCask("google-chrome", "Google Chrome")
 	MacPMSInstallCask("firefox", "Firefox")
@@ -602,13 +666,12 @@ func macProductivity(adminCode string) {
 	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
 	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install productivity applications!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup productivity!")
 }
 
 func macCreativity(adminCode string) {
-	macLdBar.Suffix = " Installing - applications... "
-	macLdBar.Start()
+	fmt.Println("- Creativity Installation")
 
 	MacPMSInstall("bash")
 	MacPMSInstall("zsh")
@@ -628,17 +691,16 @@ func macCreativity(adminCode string) {
 	MacPMSInstallCask("zeplin", "Zeplin")
 	MacPMSInstallCask("blender", "Blender")
 	ChangeMacApplicationIcon("Blender", "Blender.icns", adminCode)
+	MacPMSInstallCask("obs", "OBS")
 	MacPMSInstallCaskSudo("loopback", "Loopback", "/Applications/Loopback.app", adminCode)
 	StartMacApplication("Loopback")
-	MacPMSInstallCask("obs", "OBS")
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install creativity applications!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup creativity!")
 }
 
 func macDevelopment(adminCode string) {
-	macLdBar.Suffix = " Installing - applications... "
-	macLdBar.Start()
+	fmt.Println("- Developer Tool Installation")
 
 	MacPMSInstall("make")
 	MacPMSInstallQuiet("cmake")
@@ -660,9 +722,14 @@ func macDevelopment(adminCode string) {
 	MacPMSInstall("watchman")
 	MacPMSInstall("direnv")
 
+	insLdBar.Suffix = " macOS is configuring zsh for direnv ... "
+	insLdBar.Start()
+
 	shrcAppend := "# DIRENV\n" +
 		"eval \"$(direnv hook zsh)\"\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
+
+	insLdBar.Stop()
 
 	MacPMSInstallCask("iterm2", "iTerm")
 	MacPMSInstallCask("neovide", "Neovide")
@@ -685,13 +752,12 @@ func macDevelopment(adminCode string) {
 	MacPMSInstallCask("staruml", "StarUML")
 	ChangeMacApplicationIcon("StarUML", "StarUML.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install development applications!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup developer tools!")
 }
 
 func macSecurity(adminCode string) {
-	macLdBar.Suffix = " Installing - applications... "
-	macLdBar.Start()
+	fmt.Println("- Security Tool Installation")
 
 	MacPMSInstall("openvpn")
 	MacPMSInstall("wireguard-go")
@@ -727,16 +793,23 @@ func macSecurity(adminCode string) {
 	MacPMSInstallCaskSudo("zenmap", "Zenmap", "/Applications/Zenmap.app", adminCode)
 	ChangeMacApplicationIcon("Zenmap", "Zenmap.icns", adminCode)
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "install security applications!\n"
-	macLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup security tools!")
 }
 
 func macVirtualMachines(adminCode string, vmSts bool) {
+	fmt.Println("- virtualisation Tool Installation")
+
 	MacPMSInstall("asdf")
 
-	shrcAppend := "# ASDF VM\n" +
+	insLdBar.Suffix = " macOS is configuring zsh for ASDF-VM ... "
+	insLdBar.Start()
+
+	shrcAppend := "# ASDF-VM\n" +
 		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
+
+	insLdBar.Stop()
 
 	if vmSts != true {
 		MacPMSInstallCask("docker", "Docker")
@@ -749,27 +822,39 @@ func macVirtualMachines(adminCode string, vmSts bool) {
 	if vmSts != true {
 		DockerSet(MacDockerPath())
 	}
+
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup virtualisation tools!")
 }
 
 func macEnd(userName, userEmail string) {
-	macLdBar.Suffix = " Finishing... "
-	macLdBar.Start()
+	fmt.Println("- Finishing ")
+	insLdBar.Suffix = " macOS is configuring zsh for finishing ... "
+	insLdBar.Start()
 
 	shrcAppend := "\n######## ADD CUSTOM VALUES UNDER HERE ########\n\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
 
+	insLdBar.Stop()
+	insLdBar.Suffix = " Clearing homebrew caches ... "
+	insLdBar.Start()
+
 	MacPMSUpgrade()
 	MacPMSCleanup()
 	MacPMSRemoveCache()
-	Git4shSet(userName, userEmail)
-	if ChangeMacWallpaper(HomeDirectory()+"Pictures/Orb Glass Dynamic.heic") != true {
-		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
-		macLdBar.Stop()
-		fmt.Println(fntBold + fntRed + "   Failed " + fntReset + "change desktop wallpaper and configure git!")
-	}
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up cache, configure git and wallpaper!"
-	macLdBar.Stop()
+	Git4shSet(userName, userEmail)
+
+	var ChangeMacWallpaperFinalMSG string
+	if ChangeMacWallpaper(HomeDirectory()+"Pictures/Orb Glass Dynamic.heic") != true {
+		ClearLine(1)
+		ChangeMacWallpaperFinalMSG = "clean up cache, configure git!"
+		fmt.Println(errors.New(fntBold + fntRed + "   Failed " + fntReset + "configure desktop wallpaper."))
+	} else {
+		ClearLine(1)
+		ChangeMacWallpaperFinalMSG = "clean up cache, configure git and desktop wallpaper!"
+	}
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + ChangeMacWallpaperFinalMSG)
 }
 
 func CEIOS4macOS(adminCode string) bool {

@@ -441,6 +441,9 @@ func ASDFReshim(asdfPath string) {
 }
 
 func ASDFInstall(asdfPath, asdfPlugin, asdfVersion string) {
+	insLdBar.Suffix = " ASDF-VM is installing " + asdfPlugin + " ... "
+	insLdBar.Start()
+
 	if CheckExists(HomeDirectory()+".asdf/plugins/"+asdfPlugin) != true {
 		asdfPluginAdd := exec.Command(asdfPath, "plugin", "add", asdfPlugin)
 		err := asdfPluginAdd.Run()
@@ -457,6 +460,8 @@ func ASDFInstall(asdfPath, asdfPlugin, asdfVersion string) {
 	asdfGlobal.Env = os.Environ()
 	errConf := asdfGlobal.Run()
 	CheckCmdError(errConf, "ASDF-VM failed to install", asdfPlugin)
+
+	insLdBar.Stop()
 }
 
 func ASDFSet(asdfPath string) {
@@ -519,9 +524,11 @@ func DockerStatus(dockerPath string) int {
 func DockerInstall(dockerPath, dockerImage string) {
 	insLdBar.Suffix = " Docker is downloading " + dockerImage + " image ... "
 	insLdBar.Start()
+
 	startDocker := exec.Command(dockerPath, "pull", dockerImage)
 	err := startDocker.Run()
 	CheckCmdError(err, "Docker failed to pull", dockerImage)
+
 	insLdBar.Stop()
 }
 
@@ -585,6 +592,9 @@ dockerStatus:
 }
 
 func Alias4shSet() {
+	insLdBar.Suffix = " macOS is installing Alias4sh  ... "
+	insLdBar.Start()
+
 	a4sPath := HomeDirectory() + ".config/alias4sh"
 	MakeDirectory(a4sPath)
 	MakeFile(a4sPath+"/alias4.sh", "# ALIAS4SH", 0644)
@@ -599,9 +609,13 @@ func Alias4shSet() {
 	}
 
 	RemoveFile(dlA4sPath)
+	insLdBar.Stop()
 }
 
 func Git4shSet(gitUserName, gitUserEmail string) {
+	insLdBar.Suffix = " macOS is configuring global git ... "
+	insLdBar.Start()
+
 	setGitUserName := exec.Command(macGit, "config", "--global", "user.name", gitUserName)
 	errGitUserName := setGitUserName.Run()
 	CheckError(errGitUserName, "Failed to set git user name")
@@ -629,6 +643,8 @@ func Git4shSet(gitUserName, gitUserEmail string) {
 	setExcludesFile := exec.Command(macGit, "config", "--global", "core.excludesfile", ignorePath)
 	errExcludesFile := setExcludesFile.Run()
 	CheckError(errExcludesFile, "Failed to set git global ignore file")
+
+	insLdBar.Stop()
 }
 
 func main() {

@@ -73,14 +73,12 @@ func MacOSUpdate() {
 
 func MacSoftware() string {
 	softInfo, err := exec.Command("system_profiler", "SPSoftwareDataType").Output()
-	//softInfo, err := macSoft.Output()
 	CheckError(err, "Failed to get macOS hardware information")
 	return string(softInfo)
 }
 
 func MacHardware() string {
 	macInfo, err := exec.Command("system_profiler", "SPHardwareDataType").Output()
-	//hardInfo, err := macHard.Output()
 	CheckError(err, "Failed to get macOS hardware information")
 	return string(macInfo)
 }
@@ -160,22 +158,19 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	RemoveFile(chicnPath)
 }
 
-func ChangeMacWallpaper() {
-	srcWp := WorkingDirectory() + ".ceios-wallpaper.png"
-	//DownloadFile(srcWp, "https://raw.githubusercontent.com/leelsey/CEIOS/main/pictures/wallpaper/desktop.jpeg", 0755)
-	DownloadFile(srcWp, "https://gitlab.com/kalilinux/packages/kali-wallpapers/-/raw/kali/master/2023/backgrounds/kali/kali-cubism-16x9.png?inline=false", 0755)
-
+func ChangeMacWallpaper(srcWp string) bool {
+	//srcWp := HomeDirectory() + "Pictures/" + wpPath
 	chWpPath := WorkingDirectory() + ".ceios-chwap.sh"
 	chWpSrc := "osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"" + srcWp + "\"'"
 	MakeFile(chWpPath, chWpSrc, 0644)
 
 	chWp := exec.Command(cmdSh, chWpPath)
 	if err := chWp.Run(); err != nil {
-		RemoveFile(srcWp)
-		CheckCmdError(err, "Failed change", "desktop background")
+		RemoveFile(chWpPath)
+		return false
 	}
-	RemoveFile(srcWp)
 	RemoveFile(chWpPath)
+	return true
 }
 
 func MacPMSUpdate() {
@@ -381,6 +376,16 @@ func macEnv() {
 	if CheckArchitecture() == "arm64" {
 		MacInstallRosetta2()
 	}
+
+	PicturesPath := HomeDirectory() + "Pictures/"
+	DownloadFile(PicturesPath+"Cube Glass Light.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Light.jpg", 0644)
+	DownloadFile(PicturesPath+"Cube Glass Dark.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Dark.jpg", 0644)
+	DownloadFile(PicturesPath+"Cube Glass Light and Dark.heic", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Light and Dark.heic", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Light.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Light.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass White.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass White.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Green.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Green.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Blue.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Blue.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Dynamic.heic", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Dynamic.heic", 0644)
 
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
 	macLdBar.Stop()
@@ -744,11 +749,14 @@ func macEnd(userName, userEmail string) {
 	MacPMSUpgrade()
 	MacPMSCleanup()
 	MacPMSRemoveCache()
-
 	Git4shSet(userName, userEmail)
-	ChangeMacWallpaper()
+	if ChangeMacWallpaper(HomeDirectory()+"Pictures/Orb Glass Dynamic.heic") != true {
+		macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
+		macLdBar.Stop()
+		fmt.Println(fntBold + fntRed + "   Failed " + fntReset + "change desktop wallpaper and cofigure git!")
+	}
 
-	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up homebrew's cache!\n"
+	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "clean up cache, config git and wallpaper!\n"
 	macLdBar.Stop()
 }
 

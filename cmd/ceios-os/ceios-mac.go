@@ -599,7 +599,6 @@ func macProductivity(adminCode string) {
 	ChangeMacApplicationIcon("Spotify", "Spotify.icns", adminCode)
 	MacPMSInstallCask("signal", "Signal")
 	MacPMSInstallCask("discord", "Discord")
-	MacPMSInstallCask("slack", "Slack")
 	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
 	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
 
@@ -732,19 +731,24 @@ func macSecurity(adminCode string) {
 	macLdBar.Stop()
 }
 
-func macVirtualMachines(adminCode string) {
+func macVirtualMachines(adminCode string, vmSts bool) {
 	MacPMSInstall("asdf")
-	MacPMSInstallCask("docker", "Docker")
-	StartMacApplication("Docker")
-	MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
-	ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
 
 	shrcAppend := "# ASDF VM\n" +
 		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
 
+	if vmSts != true {
+		MacPMSInstallCask("docker", "Docker")
+		StartMacApplication("Docker")
+		MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
+		ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
+	}
+
 	ASDFSet(MacASDFPath())
-	DockerSet(MacDockerPath())
+	if vmSts != true {
+		DockerSet(MacDockerPath())
+	}
 }
 
 func macEnd(userName, userEmail string) {
@@ -786,6 +790,11 @@ func CEIOS4macOS(adminCode string) bool {
 		} else if archType == "amd64" {
 			chipArch = "   Processor "
 		}
+		var vmSts bool
+		if strings.Contains(chipInfo, "Unknown") == true {
+			chipInfo = "Virtual Machine"
+			vmSts = true
+		}
 		macInfo := fntBold + " " + osName + fntReset + "\n" + fntBold + "   Version " + fntReset + osVer + "\n" +
 			fntBold + " " + modelInfo + fntReset + "\n" + fntBold + chipArch + fntReset + chipInfo + "\n" +
 			fntBold + "   Memory " + fntReset + memoryInfo + "\n" + fntBold + "   Device " + fntReset + deviceName + "\n" +
@@ -824,7 +833,7 @@ func CEIOS4macOS(adminCode string) bool {
 		macCreativity(adminCode)
 		macDevelopment(adminCode)
 		macSecurity(adminCode)
-		macVirtualMachines(adminCode)
+		macVirtualMachines(adminCode, vmSts)
 		macEnd(userName, userEmail)
 
 		fmt.Println(" ------------------------------------------------------------")

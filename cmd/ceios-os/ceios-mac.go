@@ -132,7 +132,7 @@ func StartMacApplication(appName string) {
 
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
-	DownloadFile(srcIcn, "https://raw.githubusercontent.com/leelsey/ConfStore/main/icns/"+icnName, 0755)
+	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
 
 	appSrc := strings.Replace(appName, " ", "\\ ", -1)
 	appPath := "/Applications/" + appSrc + ".app"
@@ -378,14 +378,18 @@ func macEnv() {
 	}
 
 	PicturesPath := HomeDirectory() + "Pictures/"
-	DownloadFile(PicturesPath+"Cube Glass Light.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Light.jpg", 0644)
-	DownloadFile(PicturesPath+"Cube Glass Dark.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Dark.jpg", 0644)
-	DownloadFile(PicturesPath+"Cube Glass Light and Dark.heic", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Cube Glass Light and Dark.heic", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Light.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Light.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass White.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass White.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Green.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Green.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Blue.jpg", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Blue.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Dynamic.heic", "https://raw.githubusercontent.com/leelsey/ConfStore/main/wallpaper/Orb Glass Dynamic.heic", 0644)
+	DownloadFile(PicturesPath+"Cube Glass Light.jpg", CfgSto+"wallpaper/Cube Glass Light.jpg", 0644)
+	DownloadFile(PicturesPath+"Cube Glass Dark.jpg", CfgSto+"wallpaper/Cube Glass Dark.jpg", 0644)
+	DownloadFile(PicturesPath+"Cube Glass Light and Dark.heic", CfgSto+"wallpaper/Cube Glass Light and Dark.heic", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Light.jpg", CfgSto+"wallpaper/Orb Glass Light.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass White.jpg", CfgSto+"wallpaper/Orb Glass White.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Green.jpg", CfgSto+"wallpaper/Orb Glass Green.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Blue.jpg", CfgSto+"wallpaper/Orb Glass Blue.jpg", 0644)
+	DownloadFile(PicturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Orb Glass Dynamic.heic", 0644)
+	//DownloadFile(PicturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)
+	//DownloadFile(PicturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)
+	//DownloadFile(PicturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
+	//DownloadFile(PicturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
 
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
 	macLdBar.Stop()
@@ -511,16 +515,16 @@ func macUtility(adminCode string) {
 	fontLibPath := HomeDirectory() + "Library/Fonts/"
 	MakeDirectory(p10kConfPath)
 	MakeDirectory(p10kCachePath)
-	DownloadFile(p10kConfPath+"p10k-term.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-minimalism.zsh", 0644)
-	DownloadFile(p10kConfPath+"p10k-iterm2.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-atelier.zsh", 0644)
-	DownloadFile(p10kConfPath+"p10k-tmux.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-seeking.zsh", 0644)
-	DownloadFile(p10kConfPath+"p10k-ops.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-operations.zsh", 0644)
-	DownloadFile(p10kConfPath+"p10k-etc.zsh", "https://raw.githubusercontent.com/leelsey/ConfStore/main/p10k/p10k-engineering.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-term.zsh", CfgSto+"p10k/p10k-minimalism.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-iterm2.zsh", CfgSto+"p10k/p10k-atelier.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-tmux.zsh", CfgSto+"p10k/p10k-seeking.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-ops.zsh", CfgSto+"p10k/p10k-operations.zsh", 0644)
+	DownloadFile(p10kConfPath+"p10k-etc.zsh", CfgSto+"p10k/p10k-engineering.zsh", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Bold Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold%20Italic.ttf", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
 	DownloadFile(fontLibPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
-	DownloadFile(HomeDirectory()+"Library/Preferences/com.googlecode.iterm2.plist", "https://raw.githubusercontent.com/leelsey/ConfStore/main/iterm2/iTerm2.plist", 0644)
+	DownloadFile(HomeDirectory()+"Library/Preferences/com.googlecode.iterm2.plist", CfgSto+"iterm2/iTerm2.plist", 0644)
 
 	profileAppend := "# ZSH\n" +
 		"export SHELL=zsh\n\n" +

@@ -377,19 +377,20 @@ func macEnv() {
 		MacInstallRosetta2()
 	}
 
-	PicturesPath := HomeDirectory() + "Pictures/"
-	DownloadFile(PicturesPath+"Cube Glass Light.jpg", CfgSto+"wallpaper/Cube Glass Light.jpg", 0644)
-	DownloadFile(PicturesPath+"Cube Glass Dark.jpg", CfgSto+"wallpaper/Cube Glass Dark.jpg", 0644)
-	DownloadFile(PicturesPath+"Cube Glass Light and Dark.heic", CfgSto+"wallpaper/Cube Glass Light and Dark.heic", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Light.jpg", CfgSto+"wallpaper/Orb Glass Light.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass White.jpg", CfgSto+"wallpaper/Orb Glass White.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Green.jpg", CfgSto+"wallpaper/Orb Glass Green.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Blue.jpg", CfgSto+"wallpaper/Orb Glass Blue.jpg", 0644)
-	DownloadFile(PicturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Orb Glass Dynamic.heic", 0644)
-	//DownloadFile(PicturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)
-	//DownloadFile(PicturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)
-	//DownloadFile(PicturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
-	//DownloadFile(PicturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
+	picturesPath := HomeDirectory() + "Pictures/"
+	DownloadFile(picturesPath+"Cube Glass Light and Dark.heic", CfgSto+"wallpaper/Cube Glass.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Orb Glass.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Oval Wave.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Silk Wave.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Stone Wave.heic", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Blue Wave.jpg", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Perple Wave.jpg", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Perple Wave.jpg", 0644)
+	DownloadFile(picturesPath+"Orb Glass Dynamic.heic", CfgSto+"wallpaper/Rain Glass.jpg", 0644)
+	//DownloadFile(picturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)
+	//DownloadFile(picturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)
+	//DownloadFile(picturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
+	//DownloadFile(picturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
 
 	macLdBar.FinalMSG = fntBold + fntGreen + "   Succeed " + fntReset + "setup zsh environment!\n"
 	macLdBar.Stop()

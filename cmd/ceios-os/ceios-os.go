@@ -25,7 +25,8 @@ var (
 	osType   = CheckOperatingSystem()
 	shrcPath = HomeDirectory() + ".zshrc"
 	prfPath  = HomeDirectory() + ".zprofile"
-	CfgSto   = "https://raw.githubusercontent.com/leelsey/ConfStore/main/"
+	ghRaw    = "https://raw.githubusercontent.com/"
+	CfgSto   = ghRaw + "leelsey/ConfStore/main/"
 	cmdAdmin = "sudo"
 	cmdSh    = "/bin/bash"
 	optIns   = "install"

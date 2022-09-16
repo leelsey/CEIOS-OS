@@ -273,7 +273,7 @@ func MacInstallRosetta2() {
 
 func MacInstallBrew(adminCode string) {
 	insBrewPath := WorkingDirectory() + ".ceios-brew.sh"
-	DownloadFile(insBrewPath, "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", 0755)
+	DownloadFile(insBrewPath, ghRaw+"Homebrew/install/HEAD/install.sh", 0755)
 
 	NeedPermission(adminCode)
 	installHomebrew := exec.Command(cmdSh, "-c", insBrewPath)
@@ -498,6 +498,9 @@ func macUtility(adminCode string) {
 	MacPMSInstall("exa")
 	MacPMSInstall("bat")
 	MacPMSInstall("tree")
+	// Install p // TODO: will add
+	// Install jctl // TODO: will add
+	// Install Verifier  // TODO: will add
 	MacPMSInstall("diffutils")
 	MacPMSInstall("diffr")
 	MacPMSInstall("tldr")
@@ -513,6 +516,7 @@ func macUtility(adminCode string) {
 	p10kConfPath := HomeDirectory() + ".config/p10k/"
 	p10kCachePath := HomeDirectory() + ".cache/p10k-" + CurrentUsername()
 	fontLibPath := HomeDirectory() + "Library/Fonts/"
+	nerdfontDlPath := ghRaw + "romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/"
 	MakeDirectory(p10kConfPath)
 	MakeDirectory(p10kCachePath)
 	DownloadFile(p10kConfPath+"p10k-term.zsh", CfgSto+"p10k/p10k-minimalism.zsh", 0644)
@@ -520,10 +524,10 @@ func macUtility(adminCode string) {
 	DownloadFile(p10kConfPath+"p10k-tmux.zsh", CfgSto+"p10k/p10k-seeking.zsh", 0644)
 	DownloadFile(p10kConfPath+"p10k-ops.zsh", CfgSto+"p10k/p10k-operations.zsh", 0644)
 	DownloadFile(p10kConfPath+"p10k-etc.zsh", CfgSto+"p10k/p10k-engineering.zsh", 0644)
-	DownloadFile(fontLibPath+"MesloLGS NF Bold Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold%20Italic.ttf", 0644)
-	DownloadFile(fontLibPath+"MesloLGS NF Bold.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Bold.ttf", 0644)
-	DownloadFile(fontLibPath+"MesloLGS NF Italic.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Italic.ttf", 0644)
-	DownloadFile(fontLibPath+"MesloLGS NF Regular.ttf", "https://raw.githubusercontent.com/romkatv/dotfiles-public/master/.local/share/fonts/NerdFonts/MesloLGS%20NF%20Regular.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Bold Italic.ttf", nerdfontDlPath+"MesloLGS NF Bold Italic.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Bold.ttf", nerdfontDlPath+"MesloLGS NF Bold.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Italic.ttf", nerdfontDlPath+"MesloLGS NF Italic.ttf", 0644)
+	DownloadFile(fontLibPath+"MesloLGS NF Regular.ttf", nerdfontDlPath+"MesloLGS NF Regular.ttf", 0644)
 	DownloadFile(HomeDirectory()+"Library/Preferences/com.googlecode.iterm2.plist", CfgSto+"iterm2/iTerm2.plist", 0644)
 
 	profileAppend := "# ZSH\n" +

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/briandowns/spinner"
 	"os"
 	"os/exec"
 	"strings"
@@ -18,7 +17,7 @@ var (
 	macAlt    = "--cask"
 	macGit    = "/usr/bin/git"
 	macRepo   = "tap"
-	macLdBar  = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
+	//macLdBar  = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
 
 func MacPMSPrefix() string {
@@ -190,14 +189,14 @@ func ChangeMacWallpaper(srcWp string) bool {
 func MacPMSUpdate() {
 	updateHomebrew := exec.Command(macPMS, "update", "--auto-update")
 	err := updateHomebrew.Run()
-	CheckCmdError(err, "Brew failed to", "update repositories")
+	CheckCmdError(err, "Homebrew failed to", "update repositories")
 }
 
 func MacPMSUpgrade() {
 	MacPMSUpdate()
 	upgradeHomebrew := exec.Command(macPMS, "upgrade", "--greedy")
 	err := upgradeHomebrew.Run()
-	CheckCmdError(err, "Brew failed to", "upgrade packages")
+	CheckCmdError(err, "Homebrew failed to", "upgrade packages")
 }
 
 func MacPMSRepository(repo string) {
@@ -206,24 +205,24 @@ func MacPMSRepository(repo string) {
 	if CheckExists(pmsPrefix+"Homebrew/Library/Taps/"+repoPath) != true {
 		brewRepo := exec.Command(macPMS, macRepo, repo)
 		err := brewRepo.Run()
-		CheckCmdError(err, "Brew failed to add ", repo)
+		CheckCmdError(err, "Homebrew failed to add ", repo)
 	}
 }
 
 func MacPMSCleanup() {
 	upgradeHomebrew := exec.Command(macPMS, "cleanup", "--prune=all", "-nsd")
 	err := upgradeHomebrew.Run()
-	CheckCmdError(err, "Brew failed to", "cleanup old packages")
+	CheckCmdError(err, "Homebrew failed to", "cleanup old packages")
 }
 
 func MacPMSRemoveCache() {
 	upgradeHomebrew := exec.Command("rm", "-rf", "\"$(brew --cache)\"")
 	err := upgradeHomebrew.Run()
-	CheckCmdError(err, "Brew failed to", "remove cache")
+	CheckCmdError(err, "Homebrew failed to", "remove cache")
 }
 
 func MacPMSInstall(pkg string) {
-	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Suffix = " Homebrew is installing " + pkg + " ... "
 	insLdBar.Start()
 
 	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
@@ -231,28 +230,28 @@ func MacPMSInstall(pkg string) {
 		brewIns := exec.Command(macPMS, optIns, pkg)
 		brewIns.Stderr = os.Stderr
 		err := brewIns.Run()
-		CheckCmdError(err, "Brew failed to install", pkg)
+		CheckCmdError(err, "Homebrew failed to install", pkg)
 	}
 
 	insLdBar.Stop()
 }
 
 func MacPMSInstallQuiet(pkg string) {
-	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Suffix = " Homebrew is installing " + pkg + " ... "
 	insLdBar.Start()
 
 	if CheckExists(pmsPrefix+"Cellar/"+pkg) != true {
 		MacPMSUpdate()
 		brewIns := exec.Command(macPMS, optIns, "--quiet", pkg)
 		err := brewIns.Run()
-		CheckCmdError(err, "Brew failed to install", pkg)
+		CheckCmdError(err, "Homebrew failed to install", pkg)
 	}
 
 	insLdBar.Stop()
 }
 
 func MacPMSInstallCask(pkg, appName string) {
-	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Suffix = " Homebrew is installing " + pkg + " ... "
 	insLdBar.Start()
 
 	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
@@ -260,11 +259,11 @@ func MacPMSInstallCask(pkg, appName string) {
 		if CheckExists("/Applications/"+appName+".app") != true {
 			brewIns := exec.Command(macPMS, optIns, macAlt, pkg)
 			err := brewIns.Run()
-			CheckCmdError(err, "Brew failed to install cask", pkg)
+			CheckCmdError(err, "Homebrew failed to install cask", pkg)
 		} else {
 			brewIns := exec.Command(macPMS, optReIn, macAlt, pkg)
 			err := brewIns.Run()
-			CheckCmdError(err, "Brew failed to reinstall cask", pkg)
+			CheckCmdError(err, "Homebrew failed to reinstall cask", pkg)
 		}
 	}
 
@@ -272,7 +271,7 @@ func MacPMSInstallCask(pkg, appName string) {
 }
 
 func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
-	insLdBar.Suffix = " Brew is installing " + pkg + " ... "
+	insLdBar.Suffix = " Homebrew is installing " + pkg + " ... "
 	insLdBar.Start()
 
 	if CheckExists(pmsPrefix+"Caskroom/"+pkg) != true {
@@ -281,11 +280,11 @@ func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
 		if CheckExists(appPath) != true {
 			brewIns := exec.Command(macPMS, optIns, macAlt, pkg)
 			err := brewIns.Run()
-			CheckCmdError(err, "Brew failed to install cask", appName)
+			CheckCmdError(err, "Homebrew failed to install cask", appName)
 		} else {
 			brewIns := exec.Command(macPMS, optReIn, macAlt, pkg)
 			err := brewIns.Run()
-			CheckCmdError(err, "Brew failed to install cask", appName)
+			CheckCmdError(err, "Homebrew failed to install cask", appName)
 		}
 	}
 
@@ -293,7 +292,7 @@ func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
 }
 
 func MacJavaHome(srcVer, dstVer, adminCode string) {
-	insLdBar.Suffix = " Java is adding Java" + dstVer + " to jvm home ... "
+	insLdBar.Suffix = " macOS is adding java" + dstVer + " to jvm home ... "
 	insLdBar.Start()
 
 	if CheckExists(pmsPrefix+"Cellar/openjdk"+srcVer) == true {
@@ -304,7 +303,7 @@ func MacJavaHome(srcVer, dstVer, adminCode string) {
 }
 
 func MacInstallRosetta2() {
-	insLdBar.Suffix = " macOS is installing Rosetta2  ... "
+	insLdBar.Suffix = " macOS is installing Rosetta2 ... "
 	insLdBar.Start()
 
 	osUpdate := exec.Command("softwareupdate", "--install-rosetta", "--agree-to-license")
@@ -316,7 +315,7 @@ func MacInstallRosetta2() {
 }
 
 func MacInstallBrew(adminCode string) {
-	insLdBar.Suffix = " macOS is installing homebrew  ... "
+	insLdBar.Suffix = " macOS is installing homebrew ... "
 	insLdBar.Start()
 
 	insBrewPath := WorkingDirectory() + ".ceios-brew.sh"
@@ -371,14 +370,14 @@ func macBegin(adminCode string) {
 	var macBeginFinalMSG string
 	if CheckExists(macPMS) == true {
 		fmt.Println("- Update Homebrew")
-		macBeginFinalMSG = "update homebrew!\n"
+		macBeginFinalMSG = "update homebrew!"
 	} else {
 		fmt.Println("- Install and Update Homebrew")
-		macBeginFinalMSG = "install and update homebrew!\n"
+		macBeginFinalMSG = "install and update homebrew!"
 		MacInstallBrew(adminCode)
 	}
 
-	insLdBar.Suffix = " Brew is updating ... "
+	insLdBar.Suffix = " Homebrew is updating ... "
 	insLdBar.Start()
 
 	err := os.Chmod(pmsPrefix+"share", 0755)
@@ -390,7 +389,7 @@ func macBegin(adminCode string) {
 	MacPMSRepository("romkatv/powerlevel10k")
 	MacPMSUpgrade()
 
-	macLdBar.Stop()
+	insLdBar.Stop()
 	ClearLine(1)
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + macBeginFinalMSG)
 }
@@ -522,7 +521,6 @@ func macDependency(adminCode string) {
 	MacPMSInstall("cabal-install")
 	MacPMSInstall("haskell-language-server")
 	MacPMSInstall("stylish-haskell")
-
 	MacPMSInstall("httpd")
 	MacPMSInstall("tomcat")
 	MacPMSInstall("mysql")
@@ -665,6 +663,8 @@ func macProductivity(adminCode string) {
 	MacPMSInstallCask("discord", "Discord")
 	MacPMSInstallCask("jetbrains-space", "JetBrains Space")
 	ChangeMacApplicationIcon("JetBrains Space", "JetBrains Space.icns", adminCode)
+	MacPMSInstallCask("notion", "Notion")
+	ChangeMacApplicationIcon("Notion", "Notion.icns", adminCode)
 
 	ClearLine(1)
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup productivity!")
@@ -672,20 +672,6 @@ func macProductivity(adminCode string) {
 
 func macCreativity(adminCode string) {
 	fmt.Println("- Creativity Installation")
-
-	MacPMSInstall("bash")
-	MacPMSInstall("zsh")
-	MacPMSInstall("openssh")
-	MacPMSInstall("mosh")
-	MacPMSInstall("wget")
-	MacPMSInstall("curl")
-	MacPMSInstall("git")
-	MacPMSInstall("inetutils")
-	MacPMSInstall("openvpn")
-	MacPMSInstall("wireguard-go")
-	MacPMSInstall("wireguard-tools")
-	MacPMSInstall("tor")
-	MacPMSInstall("torsocks")
 
 	MacPMSInstallCask("sketch", "Sketch")
 	MacPMSInstallCask("zeplin", "Zeplin")

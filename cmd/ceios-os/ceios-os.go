@@ -592,7 +592,7 @@ dockerStatus:
 }
 
 func Alias4shSet() {
-	insLdBar.Suffix = " macOS is installing Alias4sh  ... "
+	insLdBar.Suffix = " macOS is installing Alias4sh ... "
 	insLdBar.Start()
 
 	a4sPath := HomeDirectory() + ".config/alias4sh"

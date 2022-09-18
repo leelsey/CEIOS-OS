@@ -132,32 +132,16 @@ func StartMacApplication(appName string) {
 	insLdBar.Stop()
 }
 
-func ChangeMacApplicationIcon(appName, icnName, adminCode string) bool {
+func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	insLdBar.Suffix = " macOS is changing application icon ... "
 	insLdBar.Start()
 
 	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
 	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
-
-	file, err := os.Open(srcIcn)
-	if err != nil {
-		insLdBar.Stop()
+	if CheckSize(srcIcn) == 0 {
 		RemoveFile(srcIcn)
-		return false
-	}
-
-	defer func() {
-		errFile := file.Close()
-		CheckError(errFile, "Failed to close file check")
-	}()
-
-	stat, err := file.Stat()
-	CheckError(err, "Failed to close file check")
-
-	if stat.Size() == 0 {
 		insLdBar.Stop()
-		RemoveFile(srcIcn)
-		return false
+		return
 	}
 
 	appSrc := strings.Replace(appName, " ", "\\ ", -1)
@@ -183,7 +167,7 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) bool {
 	RemoveFile(cvtIcn)
 	RemoveFile(chicnPath)
 	insLdBar.Stop()
-	return true
+	return
 }
 
 func ChangeMacWallpaper(srcWp string) bool {

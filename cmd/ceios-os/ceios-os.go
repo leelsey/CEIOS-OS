@@ -105,6 +105,23 @@ func CheckExists(path string) bool {
 	}
 }
 
+func CheckSize(path string) int {
+	file, err := os.Open(path)
+	if err != nil {
+		return 0
+	}
+
+	defer func() {
+		errFile := file.Close()
+		CheckError(errFile, "Failed to close file")
+	}()
+
+	stat, err := file.Stat()
+	CheckError(err, "Failed to get file stat")
+
+	return int(stat.Size())
+}
+
 func CheckNetworkStatus() bool {
 	runLdBar.Suffix = " Checking internet connection... "
 	runLdBar.Start()

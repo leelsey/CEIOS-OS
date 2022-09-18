@@ -613,9 +613,6 @@ func Alias4shSet() {
 }
 
 func Git4shSet(gitUserName, gitUserEmail string) {
-	insLdBar.Suffix = " macOS is configuring global git ... "
-	insLdBar.Start()
-
 	setGitUserName := exec.Command(macGit, "config", "--global", "user.name", gitUserName)
 	errGitUserName := setGitUserName.Run()
 	CheckError(errGitUserName, "Failed to set git user name")
@@ -643,8 +640,6 @@ func Git4shSet(gitUserName, gitUserEmail string) {
 	setExcludesFile := exec.Command(macGit, "config", "--global", "core.excludesfile", ignorePath)
 	errExcludesFile := setExcludesFile.Run()
 	CheckError(errExcludesFile, "Failed to set git global ignore file")
-
-	insLdBar.Stop()
 }
 
 func main() {

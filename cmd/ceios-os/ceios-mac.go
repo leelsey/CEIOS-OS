@@ -17,7 +17,6 @@ var (
 	macAlt    = "--cask"
 	macGit    = "/usr/bin/git"
 	macRepo   = "tap"
-	//macLdBar  = spinner.New(spinner.CharSets[16], 50*time.Millisecond)
 )
 
 func MacPMSPrefix() string {
@@ -130,16 +129,36 @@ func StartMacApplication(appName string) {
 	runApp := exec.Command("open", "/Applications/"+appName+".app")
 	err := runApp.Run()
 	CheckCmdError(err, "Failed to start", appName)
-
 	insLdBar.Stop()
 }
 
-func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
+func ChangeMacApplicationIcon(appName, icnName, adminCode string) bool {
 	insLdBar.Suffix = " macOS is changing application icon ... "
 	insLdBar.Start()
 
 	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
 	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
+
+	file, err := os.Open(srcIcn)
+	if err != nil {
+		insLdBar.Stop()
+		RemoveFile(srcIcn)
+		return false
+	}
+
+	defer func() {
+		errFile := file.Close()
+		CheckError(errFile, "Failed to close file check")
+	}()
+
+	stat, err := file.Stat()
+	CheckError(err, "Failed to close file check")
+
+	if stat.Size() == 0 {
+		insLdBar.Stop()
+		RemoveFile(srcIcn)
+		return false
+	}
 
 	appSrc := strings.Replace(appName, " ", "\\ ", -1)
 	appPath := "/Applications/" + appSrc + ".app"
@@ -157,14 +176,14 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	chicn := exec.Command(cmdSh, chicnPath)
 	chicn.Env = os.Environ()
 	chicn.Stderr = os.Stderr
-	err := chicn.Run()
-	CheckCmdError(err, "Failed change icon of", appName+".app")
+	errChicn := chicn.Run()
+	CheckCmdError(errChicn, "Failed change icon of", appName+".app")
 
 	RemoveFile(srcIcn)
 	RemoveFile(cvtIcn)
 	RemoveFile(chicnPath)
-
 	insLdBar.Stop()
+	return true
 }
 
 func ChangeMacWallpaper(srcWp string) bool {
@@ -232,7 +251,6 @@ func MacPMSInstall(pkg string) {
 		err := brewIns.Run()
 		CheckCmdError(err, "Homebrew failed to install", pkg)
 	}
-
 	insLdBar.Stop()
 }
 
@@ -246,7 +264,6 @@ func MacPMSInstallQuiet(pkg string) {
 		err := brewIns.Run()
 		CheckCmdError(err, "Homebrew failed to install", pkg)
 	}
-
 	insLdBar.Stop()
 }
 
@@ -266,7 +283,6 @@ func MacPMSInstallCask(pkg, appName string) {
 			CheckCmdError(err, "Homebrew failed to reinstall cask", pkg)
 		}
 	}
-
 	insLdBar.Stop()
 }
 
@@ -287,7 +303,6 @@ func MacPMSInstallCaskSudo(pkg, appName, appPath, adminCode string) {
 			CheckCmdError(err, "Homebrew failed to install cask", appName)
 		}
 	}
-
 	insLdBar.Stop()
 }
 
@@ -298,7 +313,6 @@ func MacJavaHome(srcVer, dstVer, adminCode string) {
 	if CheckExists(pmsPrefix+"Cellar/openjdk"+srcVer) == true {
 		LinkFile(pmsPrefix+"opt/openjdk"+srcVer+" /libexec/openjdk.jdk", "/Library/Java/JavaVirtualMachines/openjdk"+dstVer+".jdk", "symbolic", "root", adminCode)
 	}
-
 	insLdBar.Stop()
 }
 
@@ -310,7 +324,6 @@ func MacInstallRosetta2() {
 	if err := osUpdate.Run(); err != nil {
 		CheckCmdError(err, "Failed to install", "Rosetta 2")
 	}
-
 	insLdBar.Stop()
 }
 
@@ -333,7 +346,6 @@ func MacInstallBrew(adminCode string) {
 	if CheckExists(macPMS) == false {
 		MessageError("fatal", "Installed brew failed, please check your system", "Can't find homebrew")
 	}
-
 	insLdBar.Stop()
 }
 
@@ -394,7 +406,7 @@ func macBegin(adminCode string) {
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + macBeginFinalMSG)
 }
 
-func macEnv() {
+func macEnvironment(userName, userEmail string) {
 	fmt.Println("- Environment Configuration")
 	insLdBar.Suffix = " Initial setting zsh environment ... "
 	insLdBar.Start()
@@ -428,12 +440,13 @@ func macEnv() {
 
 	MakeDirectory(HomeDirectory() + ".config")
 	MakeDirectory(HomeDirectory() + ".cache")
-
 	insLdBar.Stop()
 
-	if CheckArchitecture() == "arm64" {
-		MacInstallRosetta2()
-	}
+	insLdBar.Suffix = " macOS is configuring global git ... "
+	insLdBar.Start()
+
+	Git4shSet(userName, userEmail)
+	insLdBar.Stop()
 
 	insLdBar.Suffix = " macOS is downloading desktop wallpaper ... "
 	insLdBar.Start()
@@ -447,12 +460,16 @@ func macEnv() {
 	DownloadFile(picturesPath+"Blue Wave.heic", CfgSto+"wallpaper/Blue Wave.jpg", 0644)
 	DownloadFile(picturesPath+"Purple Wave.heic", CfgSto+"wallpaper/Purple Wave.jpg", 0644)
 	DownloadFile(picturesPath+"Rain Wave.heic", CfgSto+"wallpaper/Rain Glass.jpg", 0644)
-	//DownloadFile(picturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)
-	//DownloadFile(picturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)
-	//DownloadFile(picturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)
-	//DownloadFile(picturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644)
-
+	//DownloadFile(picturesPath+"CEIOS OS.heic", CfgSto+"wallpaper/CEIOS OS.heic", 0644)               // TODO: Add CEIOS OS wallpaper
+	//DownloadFile(picturesPath+"CEIOS Ops.heic", CfgSto+"wallpaper/CEIOS Ops.heic", 0644)             // TODO: Add CEIOS OS wallpaper
+	//DownloadFile(picturesPath+"CEIOS Red Team.heic", CfgSto+"wallpaper/CEIOS Red Team.heic", 0644)   // TODO: Add CEIOS OS wallpaper
+	//DownloadFile(picturesPath+"CEIOS Blue Team.heic", CfgSto+"wallpaper/CEIOS Blue Team.heic", 0644) // TODO: Add CEIOS OS wallpaper
 	insLdBar.Stop()
+
+	if CheckArchitecture() == "arm64" {
+		MacInstallRosetta2()
+	}
+
 	ClearLine(1)
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup environment!")
 }
@@ -557,9 +574,10 @@ func macUtility(adminCode string) {
 	MacPMSInstall("exa")
 	MacPMSInstall("bat")
 	MacPMSInstall("tree")
-	// Install p // TODO: will add
-	// Install jctl // TODO: will add
-	// Install Verifier  // TODO: will add
+	// Install P        // TODO: will add
+	// Install JCtl     // TODO: will add
+	// Install ShCtl    // TODO: will add
+	// Install Verifier // TODO: will add
 	MacPMSInstall("diffutils")
 	MacPMSInstall("diffr")
 	MacPMSInstall("tldr")
@@ -632,7 +650,6 @@ func macUtility(adminCode string) {
 		"edit () { $EDITOR \"$@\" }\n" +
 		"#vi () { $EDITOR \"$@\" }\n\n"
 	AppendFile(prfPath, profileAppend, 0644)
-
 	insLdBar.Stop()
 
 	MacPMSInstallCask("iina", "IINA")
@@ -714,7 +731,6 @@ func macDevelopment(adminCode string) {
 	shrcAppend := "# DIRENV\n" +
 		"eval \"$(direnv hook zsh)\"\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
-
 	insLdBar.Stop()
 
 	MacPMSInstallCask("iterm2", "iTerm")
@@ -794,7 +810,6 @@ func macVirtualMachines(adminCode string, vmSts bool) {
 	shrcAppend := "# ASDF-VM\n" +
 		"source " + pmsPrefix + "opt/asdf/libexec/asdf.sh\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
-
 	insLdBar.Stop()
 
 	if vmSts != true {
@@ -813,15 +828,15 @@ func macVirtualMachines(adminCode string, vmSts bool) {
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup virtualisation tools!")
 }
 
-func macEnd(userName, userEmail string) {
-	fmt.Println("- Finishing ")
+func macEnd() {
+	fmt.Println("- Final Organisation")
 	insLdBar.Suffix = " macOS is configuring zsh for finishing ... "
 	insLdBar.Start()
 
 	shrcAppend := "\n######## ADD CUSTOM VALUES UNDER HERE ########\n\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
-
 	insLdBar.Stop()
+
 	insLdBar.Suffix = " Clearing homebrew caches ... "
 	insLdBar.Start()
 
@@ -829,18 +844,20 @@ func macEnd(userName, userEmail string) {
 	MacPMSCleanup()
 	MacPMSRemoveCache()
 
-	Git4shSet(userName, userEmail)
+	insLdBar.Stop()
+	ClearLine(1)
+	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "clean up cache, configure git!")
+}
 
-	var ChangeMacWallpaperFinalMSG string
+func macExtended() {
+	fmt.Println("- Additional Configuration")
 	if ChangeMacWallpaper(HomeDirectory()+"Pictures/Orb Glass Dynamic.heic") != true {
 		ClearLine(1)
-		ChangeMacWallpaperFinalMSG = "clean up cache, configure git!"
-		fmt.Println(errors.New(fntBold + fntRed + "   Failed " + fntReset + "configure desktop wallpaper."))
+		fmt.Println(errors.New(fntBold + fntRed + "   Failed " + fntReset + "change desktop wallpaper."))
 	} else {
 		ClearLine(1)
-		ChangeMacWallpaperFinalMSG = "clean up cache, configure git and desktop wallpaper!"
+		fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "change desktop wallpaper!")
 	}
-	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + ChangeMacWallpaperFinalMSG)
 }
 
 func CEIOS4macOS(adminCode string) bool {
@@ -897,7 +914,7 @@ func CEIOS4macOS(adminCode string) bool {
 		time.Sleep(time.Millisecond * 300)
 		TitleLine("CEIOS OS Installation")
 		macBegin(adminCode)
-		macEnv()
+		macEnvironment(userName, userEmail)
 		macDependency(adminCode)
 		macUtility(adminCode)
 		macProductivity(adminCode)
@@ -905,7 +922,8 @@ func CEIOS4macOS(adminCode string) bool {
 		macDevelopment(adminCode)
 		macSecurity(adminCode)
 		macVirtualMachines(adminCode, vmSts)
-		macEnd(userName, userEmail)
+		macEnd()
+		macExtended()
 
 		fmt.Println(" ------------------------------------------------------------")
 		TitleLine("Finished CEIOS OS Installation")

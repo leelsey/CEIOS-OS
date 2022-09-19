@@ -636,7 +636,6 @@ func Git4shSet(gitUserName, gitUserEmail string) {
 	setGitUserEmail := exec.Command(macGit, "config", "--global", "user.email", gitUserEmail)
 	errGitUserEmail := setGitUserEmail.Run()
 	CheckError(errGitUserEmail, "Failed to set git user email")
-	ClearLine(3)
 
 	setGitBranch := exec.Command(macGit, "config", "--global", "init.defaultBranch", "main")
 	errGitBranch := setGitBranch.Run()

@@ -122,7 +122,7 @@ func MacInformation() (string, string, string, string, string, string, string) {
 	return "", "", "", "", "", "", ""
 }
 
-func StartMacApplication(appName string) {
+func MacStartApplication(appName string) {
 	insLdBar.Suffix = " macOS is running " + appName + " ... "
 	insLdBar.Start()
 
@@ -132,42 +132,43 @@ func StartMacApplication(appName string) {
 	insLdBar.Stop()
 }
 
+func ChangeMacIcon(trgPath, icnName, adminCode string) {
+	srcIcn := WorkingDirectory() + ".ceios-icn.icns"
+	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
+	if CheckSize(srcIcn) == 0 {
+		RemoveFile(srcIcn)
+		return
+	}
+
+	chicnSh := WorkingDirectory() + ".ceios-chicn.sh"
+	cvtIcn := WorkingDirectory() + ".ceios-app-icn.rsrc"
+	chIcnSrc := "sudo rm -rf \"" + trgPath + "\"$'/Icon\\r'\n" +
+		"sips -i " + srcIcn + " > /dev/null\n" +
+		"DeRez -only icns " + srcIcn + " > " + cvtIcn + "\n" +
+		"sudo Rez -append " + cvtIcn + " -o " + trgPath + "$'/Icon\\r'\n" +
+		"sudo SetFile -a C " + trgPath + "\n" +
+		"sudo SetFile -a V " + trgPath + "$'/Icon\\r'"
+	MakeFile(chicnSh, chIcnSrc, 0644)
+
+	NeedPermission(adminCode)
+	chicn := exec.Command(cmdSh, chicnSh)
+	chicn.Env = os.Environ()
+	chicn.Stderr = os.Stderr
+	errChicn := chicn.Run()
+	CheckCmdError(errChicn, "Failed change icon of", "\""+trgPath+"\"")
+
+	RemoveFile(srcIcn)
+	RemoveFile(cvtIcn)
+	RemoveFile(chicnSh)
+}
+
 func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	insLdBar.Suffix = " macOS is changing application icon ... "
 	insLdBar.Start()
 
-	srcIcn := WorkingDirectory() + ".ceios-app-icn.icns"
-	DownloadFile(srcIcn, CfgSto+"icns/"+icnName, 0755)
-	if CheckSize(srcIcn) == 0 {
-		RemoveFile(srcIcn)
-		insLdBar.Stop()
-		return
-	}
-
-	appSrc := strings.Replace(appName, " ", "\\ ", -1)
-	appPath := "/Applications/" + appSrc + ".app"
-	chicnPath := WorkingDirectory() + ".ceios-chicn.sh"
-	cvtIcn := WorkingDirectory() + ".ceios-app-icn.rsrc"
-	chIcnSrc := "sudo rm -rf \"" + appPath + "\"$'/Icon\\r'\n" +
-		"sips -i " + srcIcn + " > /dev/null\n" +
-		"DeRez -only icns " + srcIcn + " > " + cvtIcn + "\n" +
-		"sudo Rez -append " + cvtIcn + " -o " + appPath + "$'/Icon\\r'\n" +
-		"sudo SetFile -a C " + appPath + "\n" +
-		"sudo SetFile -a V " + appPath + "$'/Icon\\r'"
-	MakeFile(chicnPath, chIcnSrc, 0644)
-
-	NeedPermission(adminCode)
-	chicn := exec.Command(cmdSh, chicnPath)
-	chicn.Env = os.Environ()
-	chicn.Stderr = os.Stderr
-	errChicn := chicn.Run()
-	CheckCmdError(errChicn, "Failed change icon of", appName+".app")
-
-	RemoveFile(srcIcn)
-	RemoveFile(cvtIcn)
-	RemoveFile(chicnPath)
+	trgPath := "/Applications/" + strings.Replace(appName, " ", "\\ ", -1) + ".app"
+	ChangeMacIcon(trgPath, icnName, adminCode)
 	insLdBar.Stop()
-	return
 }
 
 func ChangeMacWallpaper(srcWp string) bool {
@@ -641,6 +642,7 @@ func macUtility(adminCode string) {
 	MacPMSInstallCask("rectangle", "Rectangle")
 	MacPMSInstallCask("dropbox", "Dropbox")
 	MacPMSInstallCask("dropbox-capture", "Dropbox Capture")
+	MacStartApplication("Dropbox")
 	MacPMSInstallCask("keka", "Keka")
 	MacPMSInstallCask("transmission", "Transmission")
 	ChangeMacApplicationIcon("Transmission", "Transmission.icns", adminCode)
@@ -653,6 +655,7 @@ func macProductivity(adminCode string) {
 	fmt.Println("- Productivity Installation")
 
 	MacPMSInstallCask("google-chrome", "Google Chrome")
+	MacStartApplication("Google Chrome")
 	MacPMSInstallCask("firefox", "Firefox")
 	ChangeMacApplicationIcon("Firefox", "Firefox.icns", adminCode)
 	MacPMSInstallCask("tor-browser", "Tor Browser")
@@ -680,7 +683,7 @@ func macCreativity(adminCode string) {
 	ChangeMacApplicationIcon("Blender", "Blender.icns", adminCode)
 	MacPMSInstallCask("obs", "OBS")
 	MacPMSInstallCaskSudo("loopback", "Loopback", "/Applications/Loopback.app", adminCode)
-	StartMacApplication("Loopback")
+	MacStartApplication("Loopback")
 
 	ClearLine(1)
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup creativity!")
@@ -718,9 +721,9 @@ func macDevelopment(adminCode string) {
 	insLdBar.Stop()
 
 	MacPMSInstallCask("iterm2", "iTerm")
+	MacStartApplication("iTerm")
 	MacPMSInstallCask("neovide", "Neovide")
 	MacPMSInstallCask("visual-studio-code", "Visual Studio Code")
-	MacPMSInstallCask("atom", "Atom")
 	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
 	ChangeMacApplicationIcon("IntelliJ IDEA", "IntelliJ IDEA.icns", adminCode)
 	ChangeMacApplicationIcon("Neovide", "Neovide.icns", adminCode)
@@ -798,9 +801,10 @@ func macVirtualMachines(adminCode string, vmSts bool) {
 
 	if vmSts != true {
 		MacPMSInstallCask("docker", "Docker")
-		StartMacApplication("Docker")
+		MacStartApplication("Docker")
 		MacPMSInstallCaskSudo("vmware-fusion", "VMware Fusion", "/Applications/VMware Fusion.app", adminCode)
 		ChangeMacApplicationIcon("VMware Fusion", "VMware Fusion.icns", adminCode)
+		MacStartApplication("VMware Fusion")
 	}
 
 	ASDFSet(MacASDFPath())
@@ -819,6 +823,32 @@ func macEnd() {
 
 	shrcAppend := "\n######## ADD CUSTOM VALUES UNDER HERE ########\n\n\n"
 	AppendFile(shrcPath, shrcAppend, 0644)
+	insLdBar.Stop()
+
+	insLdBar.Suffix = " macOS is configuring workspace directory ... "
+	insLdBar.Start()
+
+	keyPath := HomeDirectory() + "Key/"
+	if CheckExists(keyPath) == true {
+		if CheckExists(keyPath+"AWS") == true {
+			err := os.Chmod(HomeDirectory()+"Dropbox/Key/AWS", 0600)
+			CheckError(err, "Failed to change permissions on AWS Key on Dropbox to 600")
+		}
+		if CheckExists(keyPath+"GCP") == true {
+			err := os.Chmod(HomeDirectory()+"Dropbox/Key/GCP", 0600)
+			CheckError(err, "Failed to change permissions on GCP Key on Dropbox to 600")
+		}
+		if CheckExists(keyPath+"SSL") == true {
+			err := os.Chmod(HomeDirectory()+"Dropbox/Key/SSL", 0600)
+			CheckError(err, "Failed to change permissions on SSL Key on Dropbox to 600")
+		}
+	}
+
+	RemoveFile(HomeDirectory() + "Applications")
+	RemoveFile(HomeDirectory() + "Virtual Machines")
+	MakeDirectory(HomeDirectory() + "Public/OS Images")
+	MakeDirectory(HomeDirectory() + "Public/Share Box")
+	MakeDirectory(HomeDirectory() + "Public/Virtual Machines")
 	insLdBar.Stop()
 
 	insLdBar.Suffix = " Clearing homebrew caches ... "

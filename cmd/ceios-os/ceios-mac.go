@@ -412,8 +412,6 @@ func macEnvironment(userName, userEmail string) {
 		"#  " + CurrentUsername() + "’s zsh profile\n\n" +
 		"# HOMEBREW\n" +
 		"eval \"$(" + macPMS + " shellenv)\"\n\n"
-	MakeFile(prfPath, profileContents, 0644)
-
 	shrcContents := "#   ______ _____ _    _ _____   _____\n" +
 		"#  |___  // ____| |  | |  __ \\ / ____|\n" +
 		"#     / /| (___ | |__| | |__) | |\n" +
@@ -421,6 +419,7 @@ func macEnvironment(userName, userEmail string) {
 		"#   / /__ ____) | |  | | | \\ \\| |____\n" +
 		"#  /_____|_____/|_|  |_|_|  \\_\\\\_____|\n#\n" +
 		"#  " + CurrentUsername() + "’s zsh run commands\n\n"
+	MakeFile(prfPath, profileContents, 0644)
 	MakeFile(shrcPath, shrcContents, 0644)
 
 	MakeDirectory(HomeDirectory() + ".config")
@@ -570,7 +569,6 @@ func macUtility(adminCode string) {
 	MacPMSInstall("btop")
 	MacPMSInstall("iperf3")
 	MacPMSInstall("neofetch")
-	MacPMSInstall("asciinema")
 	MacPMSInstall("transmission-cli")
 	MacPMSInstall("romkatv/powerlevel10k/powerlevel10k")
 
@@ -677,6 +675,8 @@ func macProductivity(adminCode string) {
 func macCreativity(adminCode string) {
 	fmt.Println("- Creativity Installation")
 
+	MacPMSInstall("asciinema")
+
 	MacPMSInstallCask("sketch", "Sketch")
 	MacPMSInstallCask("zeplin", "Zeplin")
 	MacPMSInstallCask("blender", "Blender")
@@ -722,10 +722,10 @@ func macDevelopment(adminCode string) {
 
 	MacPMSInstallCask("iterm2", "iTerm")
 	MacStartApplication("iTerm")
-	MacPMSInstallCask("neovide", "Neovide")
-	MacPMSInstallCask("visual-studio-code", "Visual Studio Code")
 	MacPMSInstallCask("intellij-idea", "IntelliJ IDEA")
 	ChangeMacApplicationIcon("IntelliJ IDEA", "IntelliJ IDEA.icns", adminCode)
+	MacPMSInstallCask("visual-studio-code", "Visual Studio Code")
+	MacPMSInstallCask("neovide", "Neovide")
 	ChangeMacApplicationIcon("Neovide", "Neovide.icns", adminCode)
 	MacPMSInstallCask("github", "Github")
 	MacPMSInstallCask("fork", "Fork")
@@ -786,7 +786,7 @@ func macSecurity(adminCode string) {
 	fmt.Println(fntBold + fntGreen + "   Succeed " + fntReset + "install and setup security tools!")
 }
 
-func macVirtualMachines(adminCode string, vmSts bool) {
+func macVirtualMachine(vmSts bool, adminCode string) {
 	fmt.Println("- virtualisation Tool Installation")
 
 	MacPMSInstall("asdf")
@@ -935,7 +935,7 @@ func CEIOS4macOS(adminCode string) bool {
 		macCreativity(adminCode)
 		macDevelopment(adminCode)
 		macSecurity(adminCode)
-		macVirtualMachines(adminCode, vmSts)
+		macVirtualMachine(vmSts, adminCode)
 		macEnd()
 		macExtended()
 

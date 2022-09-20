@@ -457,27 +457,30 @@ func ASDFReshim(asdfPath string) {
 	CheckCmdError(err, "ASDF failed to", "reshim")
 }
 
-func ASDFInstall(asdfPath, asdfPlugin, asdfVersion string) {
-	insLdBar.Suffix = " ASDF-VM is installing " + asdfPlugin + " ... "
+func ASDFInstall(asdfPath, lang, langVer string) {
+	insLdBar.Suffix = " ASDF-VM is installing " + lang + " ... "
 	insLdBar.Start()
 
-	if CheckExists(HomeDirectory()+".asdf/plugins/"+asdfPlugin) != true {
-		asdfPluginAdd := exec.Command(asdfPath, "plugin", "add", asdfPlugin)
+	if CheckExists(HomeDirectory()+".asdf/plugins/"+lang) != true {
+		asdfPluginAdd := exec.Command(asdfPath, "plugin", "add", lang)
 		err := asdfPluginAdd.Run()
-		CheckCmdError(err, "ASDF-VM failed to add", asdfPlugin)
+		CheckCmdError(err, "ASDF-VM failed to add", lang)
 	}
 
 	ASDFReshim(asdfPath)
-	asdfIns := exec.Command(asdfPath, optIns, asdfPlugin, asdfVersion)
+	asdfIns := exec.Command(asdfPath, optIns, lang, langVer)
 	asdfIns.Env = os.Environ()
 	errIns := asdfIns.Run()
-	CheckCmdError(errIns, "ASDF-VM", asdfPlugin)
+	CheckCmdError(errIns, "ASDF-VM", lang)
 
-	asdfGlobal := exec.Command(asdfPath, "global", asdfPlugin, asdfVersion)
+	asdfGlobal := exec.Command(asdfPath, "global", lang, langVer)
 	asdfGlobal.Env = os.Environ()
 	errConf := asdfGlobal.Run()
-	CheckCmdError(errConf, "ASDF-VM failed to install", asdfPlugin)
+	CheckCmdError(errConf, "ASDF-VM failed to install", lang)
 
+	if CheckOperatingSystem() == "darwin" {
+		LinkFile(HomeDirectory()+"asdf/installs/"+lang, HomeDirectory()+"Public/Languages/", "symbolic", "", "")
+	}
 	insLdBar.Stop()
 }
 

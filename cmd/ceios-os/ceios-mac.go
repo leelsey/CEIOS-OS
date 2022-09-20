@@ -167,7 +167,9 @@ func ChangeMacApplicationIcon(appName, icnName, adminCode string) {
 	insLdBar.Start()
 
 	trgPath := "/Applications/" + strings.Replace(appName, " ", "\\ ", -1) + ".app"
-	ChangeMacIcon(trgPath, icnName, adminCode)
+	if CheckExists(trgPath) == true {
+		ChangeMacIcon(trgPath, icnName, adminCode)
+	}
 	insLdBar.Stop()
 }
 

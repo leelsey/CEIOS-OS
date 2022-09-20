@@ -848,6 +848,7 @@ func macEnd() {
 
 	RemoveFile(HomeDirectory() + "Applications")
 	RemoveFile(HomeDirectory() + "Virtual Machines")
+	MakeDirectory(HomeDirectory() + "Public/Languages")
 	MakeDirectory(HomeDirectory() + "Public/OS Images")
 	MakeDirectory(HomeDirectory() + "Public/Share Box")
 	MakeDirectory(HomeDirectory() + "Public/Virtual Machines")

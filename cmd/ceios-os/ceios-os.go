@@ -130,12 +130,12 @@ func CheckNetworkStatus() bool {
 	client := http.Client{
 		Timeout: getTimeout,
 	}
+
 	_, err := client.Get("https://9.9.9.9")
 	if err != nil {
 		runLdBar.Stop()
 		return false
 	}
-
 	runLdBar.Stop()
 	return true
 }
@@ -479,7 +479,7 @@ func ASDFInstall(asdfPath, lang, langVer string) {
 	CheckCmdError(errConf, "ASDF-VM failed to install", lang)
 
 	if CheckOperatingSystem() == "darwin" {
-		LinkFile(HomeDirectory()+"asdf/installs/"+lang, HomeDirectory()+"Public/Languages/", "symbolic", "", "")
+		LinkFile(HomeDirectory()+".asdf/installs/"+lang, HomeDirectory()+"Public/Languages/", "symbolic", "", "")
 	}
 	insLdBar.Stop()
 }
@@ -497,7 +497,7 @@ func ASDFSet(asdfPath string) {
 		"always_keep_download = no\n" +
 		"plugin_repository_last_check_duration = 0\n" +
 		"disable_plugin_short_name_repository = no\n" +
-		"java_macos_integration_enable = yes\n"
+		"java_macos_integration_enable = yes\n\n"
 	MakeFile(HomeDirectory()+".asdfrc", asdfrcContents, 0644)
 
 	ASDFInstall(asdfPath, "perl", "latest")
@@ -526,7 +526,6 @@ func DockerStatus(dockerPath string) int {
 	if CheckExists(dockerPath) != true {
 		return 1
 	}
-
 	dockerSts := exec.Command(MacDockerPath(), "version")
 	var dockerErr bytes.Buffer
 	dockerSts.Stderr = &dockerErr
@@ -548,7 +547,6 @@ func DockerInstall(dockerPath, dockerImage string) {
 	startDocker := exec.Command(dockerPath, "pull", dockerImage)
 	err := startDocker.Run()
 	CheckCmdError(err, "Docker failed to pull", dockerImage)
-
 	insLdBar.Stop()
 }
 
